@@ -1,11 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { View, FlatList, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, FlatList, StyleSheet, TouchableOpacity, RefreshControl, Alert } from 'react-native';
 import { Button, Text, Card, Divider, IconButton } from 'react-native-paper';
 import { router } from "expo-router";
 import { api } from '@/api/peopleService';
 
+interface EventDTO {
+    id: string;
+    name: string;
+    event_date: string;
+    description?: string;
+}
+
 export default function EventsScreen() {
-    const [events, setEvents] = useState([]);
+    const [events, setEvents] = useState<EventDTO[]>([]);
     const [refreshing, setRefreshing] = useState(false);
 
     useEffect(() => {
@@ -28,6 +35,38 @@ export default function EventsScreen() {
         router.push(`/events/${eventId}`);
     };
 
+    const handleEditEvent = (eventId: string) => {
+        router.push({
+            pathname: "/events/edit",
+            params: { eventId },
+        });
+    };
+
+
+    const handleDeleteEvent = async (eventId: string) => {
+        Alert.alert(
+            "Excluir Evento",
+            "Tem certeza de que deseja excluir este evento?",
+            [
+                { text: "Cancelar", style: "cancel" },
+                {
+                    text: "Excluir",
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            await api.delete(`/events/${eventId}`);
+                            Alert.alert("Sucesso", "Evento excluído com sucesso.");
+                            fetchEvents();
+                        } catch (error) {
+                            console.error("Erro ao excluir evento:", error);
+                            Alert.alert("Erro", "Falha ao excluir evento.");
+                        }
+                    },
+                },
+            ]
+        );
+    };
+
     return (
         <View style={styles.container}>
             {/* Botão Adicionar Evento */}
@@ -39,9 +78,10 @@ export default function EventsScreen() {
             >
                 Adicionar Evento
             </Button>
+
             <FlatList
                 data={events}
-                keyExtractor={(item:EventDTO) => item.id.toString()}
+                keyExtractor={(item: EventDTO) => item.id}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={fetchEvents} />
                 }
@@ -54,7 +94,7 @@ export default function EventsScreen() {
                                 left={(props) => <IconButton {...props} icon="calendar-outline" />}
                             />
                             <Card.Content>
-                                <Text>{item.description}</Text>
+                                <Text>{item.description || "Sem descrição disponível"}</Text>
                             </Card.Content>
                             <Divider style={styles.divider} />
                             <Card.Actions>
@@ -65,6 +105,20 @@ export default function EventsScreen() {
                                 >
                                     Ver Detalhes
                                 </Button>
+
+                                <IconButton
+                                    icon="pencil"
+                                    iconColor="#FFA500"
+                                    size={24}
+                                    onPress={() => handleEditEvent(item.id)}
+                                />
+
+                                <IconButton
+                                    icon="delete"
+                                    iconColor="#E53935"
+                                    size={24}
+                                    onPress={() => handleDeleteEvent(item.id)}
+                                />
                             </Card.Actions>
                         </Card>
                     </TouchableOpacity>

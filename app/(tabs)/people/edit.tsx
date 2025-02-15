@@ -1,19 +1,19 @@
-import React, { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, View, ActivityIndicator, Alert } from 'react-native';
 import { Button, Text, TextInput } from 'react-native-paper';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Controller, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { createUser } from '@/api/peopleService';
-import { router } from 'expo-router';
+import { api } from '@/api/peopleService';
+import { router, useLocalSearchParams } from 'expo-router';
 
 const schema = yup.object({
     name: yup.string().required('Nome é obrigatório'),
     phone: yup.string().required('Telefone é obrigatório'),
     instagram: yup.string().optional(),
-    birth_date: yup.string().required('Data de Nascimento é obrigatória'), // Agora sempre será string
+    birth_date: yup.string().required('Data de Nascimento é obrigatória'), // Mantendo como string
     type: yup.string().oneOf(['visitor', 'regular_attendee', 'member']).required('Tipo de pessoa é obrigatório'),
     parentName: yup.string().optional(),
     parentPhone: yup.string().optional(),
@@ -23,14 +23,15 @@ interface FormData {
     name: string;
     phone: string;
     instagram?: string;
-    birth_date: string; // Agora birth_date é sempre string
+    birth_date: string;
     type: 'visitor' | 'regular_attendee' | 'member';
     parentName?: string;
     parentPhone?: string;
 }
 
-export default function PeopleInsertScreen() {
-    const { control, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormData>({
+export default function PeopleEditScreen() {
+    const { id } = useLocalSearchParams();
+    const { control, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>({
         resolver: yupResolver(schema),
         defaultValues: {
             name: '',
@@ -43,11 +44,35 @@ export default function PeopleInsertScreen() {
         },
     });
 
+    const [loading, setLoading] = useState(true);
     const [showDatePicker, setShowDatePicker] = useState(false);
     const birth_date = watch('birth_date');
     const birth_dateObj = new Date(birth_date);
 
-    const isMinor = new Date().getFullYear() - birth_dateObj.getFullYear() < 18;
+    useEffect(() => {
+        fetchUser();
+    }, []);
+
+    const fetchUser = async () => {
+        try {
+            const response = await api.get(`/people/${id}`);
+            const userData = response.data;
+
+            setValue('name', userData.name);
+            setValue('phone', userData.phone);
+            setValue('instagram', userData.instagram || '');
+            setValue('birth_date', userData.birth_date);
+            setValue('type', userData.type);
+            setValue('parentName', userData.parentName || '');
+            setValue('parentPhone', userData.parentPhone || '');
+
+        } catch (error) {
+            console.error('Erro ao buscar usuário:', error);
+            Alert.alert('Erro', 'Falha ao carregar os dados do usuário.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const onSubmit = async (data: FormData) => {
         try {
@@ -55,13 +80,26 @@ export default function PeopleInsertScreen() {
                 ...data,
                 birth_date: new Date(data.birth_date).toISOString(),
             };
-            await createUser(formattedData);
 
-            router.replace('/people');
+            await api.put(`/people/${id}`, formattedData);
+
+            Alert.alert('Sucesso', 'Usuário atualizado com sucesso!');
+            router.replace('/people'); // Redireciona para a lista de pessoas
+
         } catch (error) {
-            console.error('Erro ao cadastrar usuário:', error);
+            console.error('Erro ao atualizar usuário:', error);
+            Alert.alert('Erro', 'Falha ao atualizar os dados.');
         }
     };
+
+    if (loading) {
+        return (
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#3b5998" />
+                <Text style={styles.loadingText}>Carregando dados...</Text>
+            </View>
+        );
+    }
 
     return (
         <View style={styles.container}>
@@ -81,8 +119,7 @@ export default function PeopleInsertScreen() {
                 control={control}
                 name="phone"
                 render={({ field: { onChange, value } }) => (
-                    <TextInput label="Telefone" value={value} onChangeText={onChange} mode="outlined"
-                               keyboardType="phone-pad" style={styles.input} error={!!errors.phone} />
+                    <TextInput label="Telefone" value={value} onChangeText={onChange} mode="outlined" keyboardType="phone-pad" style={styles.input} error={!!errors.phone} />
                 )}
             />
             {errors.phone && <Text style={styles.errorText}>{errors.phone.message}</Text>}
@@ -107,36 +144,11 @@ export default function PeopleInsertScreen() {
                     display="default"
                     onChange={(event, selectedDate) => {
                         setShowDatePicker(false);
-                        if (selectedDate) setValue('birth_date', selectedDate.toISOString()); // Sempre armazenamos string
+                        if (selectedDate) setValue('birth_date', selectedDate.toISOString());
                     }}
                 />
             )}
             {errors.birth_date && <Text style={styles.errorText}>{errors.birth_date.message}</Text>}
-
-            {/* Campos para menores de idade */}
-            {isMinor && (
-                <>
-                    <Controller
-                        control={control}
-                        name="parentName"
-                        render={({ field: { onChange, value } }) => (
-                            <TextInput label="Nome do Responsável" value={value} onChangeText={onChange} mode="outlined"
-                                       style={styles.input} error={!!errors.parentName} />
-                        )}
-                    />
-                    {errors.parentName && <Text style={styles.errorText}>{errors.parentName.message}</Text>}
-
-                    <Controller
-                        control={control}
-                        name="parentPhone"
-                        render={({ field: { onChange, value } }) => (
-                            <TextInput label="Telefone do Responsável" value={value} onChangeText={onChange} mode="outlined"
-                                       keyboardType="phone-pad" style={styles.input} error={!!errors.parentPhone} />
-                        )}
-                    />
-                    {errors.parentPhone && <Text style={styles.errorText}>{errors.parentPhone.message}</Text>}
-                </>
-            )}
 
             {/* Tipo de Pessoa */}
             <Text style={styles.label}>Tipo de Pessoa:</Text>
@@ -153,9 +165,9 @@ export default function PeopleInsertScreen() {
             />
             {errors.type && <Text style={styles.errorText}>{errors.type.message}</Text>}
 
-            {/* Botão de Cadastro */}
+            {/* Botão de Atualização */}
             <Button mode="contained" onPress={handleSubmit(onSubmit)} style={styles.button}>
-                Cadastrar
+                Atualizar Usuário
             </Button>
         </View>
     );
@@ -189,5 +201,15 @@ const styles = StyleSheet.create({
         color: 'red',
         fontSize: 12,
         marginBottom: 5,
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    loadingText: {
+        marginTop: 10,
+        fontSize: 16,
+        color: '#555',
     },
 });
