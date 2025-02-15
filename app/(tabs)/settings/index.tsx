@@ -19,6 +19,23 @@ export default function SettingsScreen() {
             >
                 Ver Eventos
             </Button>
+            <Button
+                icon="bell"
+                mode="outlined"
+                onPress={() => router.push('/settings/notifications')}
+                style={styles.button}
+            >
+                Notificações
+            </Button>
+            <Button
+                icon="file-upload"
+                mode="outlined"
+                onPress={() => router.push('/settings/upload')}
+                style={styles.button}
+            >
+                Importar Pessoas via Excel
+            </Button>
+
 
             {/* Botões para Funcionalidades Futuras */}
             <Button
@@ -39,14 +56,6 @@ export default function SettingsScreen() {
                 Preferências do App (Em breve)
             </Button>
 
-            <Button
-                icon="bell"
-                mode="outlined"
-                style={styles.buttonDisabled}
-                disabled
-            >
-                Notificações (Em breve)
-            </Button>
         </View>
     );
 }

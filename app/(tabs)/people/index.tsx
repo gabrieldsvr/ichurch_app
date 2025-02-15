@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, View, RefreshControl, Alert, TextInput } from 'react-native';
 import { Button, Card, Text, IconButton, Switch } from 'react-native-paper';
 import { router } from "expo-router";
@@ -107,7 +107,7 @@ export default function PeopleScreen() {
                                 <Text style={styles.userType}>{item.type}</Text>
                                 <Text style={styles.userPhone}>📞 {item.phone}</Text>
                                 {item.instagram && <Text style={styles.userInstagram}>📷 {item.instagram}</Text>}
-                                <Text style={styles.userBirthDate}>🎂 {new Date(item.birth_date).toLocaleDateString()}</Text>
+                                <Text style={styles.userbirth_date}>🎂 {new Date(item.birth_date).toLocaleDateString()}</Text>
                             </View>
                             <View style={styles.actionButtons}>
                                 {/* 🔥 Se ativo, mostra lixeira (que apenas inativa) */}
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#D81B60',
     },
-    userBirthDate: {
+    userbirth_date: {
         fontSize: 14,
         color: '#6A1B9A',
     },

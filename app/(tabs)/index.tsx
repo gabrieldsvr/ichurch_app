@@ -1,26 +1,111 @@
-import React from 'react';
-import { View, StyleSheet, Image } from 'react-native';
-import { Text } from 'react-native-paper';
+import React, { useEffect, useState } from 'react';
+import { View, FlatList, StyleSheet } from 'react-native';
+import { Text, Card, ActivityIndicator } from 'react-native-paper';
+import { api } from '@/api/peopleService';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
+interface BirthdayDTO {
+    id: string;
+    name: string;
+    birth_date: string;
+}
+
+interface EventDTO {
+    id: string;
+    name: string;
+    event_date: string;
+}
+
 export default function HomeScreen() {
+    const [birthdays, setBirthdays] = useState<BirthdayDTO[]>([]);
+    const [events, setEvents] = useState<EventDTO[]>([]);
+    const [loadingBirthdays, setLoadingBirthdays] = useState(true);
+    const [loadingEvents, setLoadingEvents] = useState(true);
+
+    useEffect(() => {
+        fetchBirthdays();
+        fetchEvents();
+    }, []);
+
+    const fetchBirthdays = async () => {
+        try {
+            const response = await api.get('/reports/birthdays-this-week');
+            setBirthdays(response.data);
+        } catch (error: any) {
+            console.error('Erro ao buscar aniversariantes:', error.message);
+        } finally {
+            setLoadingBirthdays(false);
+        }
+    };
+
+    const fetchEvents = async () => {
+        try {
+            const response = await api.get('/events?week=true'); // 🔥 Ajuste a rota conforme necessário
+            setEvents(response.data);
+        } catch (error: any) {
+            console.error('Erro ao buscar eventos:', error.message);
+        } finally {
+            setLoadingEvents(false);
+        }
+    };
+
     return (
         <View style={styles.container}>
+            {/* Título e subtítulo animados */}
+            <Animated.Text entering={FadeInDown.duration(600)} style={styles.title}>
+                📖 iChurch
+            </Animated.Text>
+            <Animated.Text entering={FadeInDown.duration(800)} style={styles.subtitle}>
+                "Servindo com excelência, amando com propósito."
+            </Animated.Text>
 
-            {/* Nome do App */}
-            <Animated.View entering={FadeInDown.duration(1200).delay(200)}>
-                <Text style={styles.appName}>Ichurch</Text>
-            </Animated.View>
+            {/* Seção de aniversariantes */}
+            <Text style={styles.sectionTitle}>🎉 Aniversariantes da Semana 🎂</Text>
+            {loadingBirthdays ? (
+                <ActivityIndicator size="large" color="#3b5998" />
+            ) : (
+                <FlatList
+                    data={birthdays}
+                    keyExtractor={(item) => item.id}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.listContainer}
+                    renderItem={({ item }) => (
+                        <Card style={styles.card}>
+                            <Card.Content>
+                                <Text style={styles.name}>{item.name}</Text>
+                                <Text style={styles.date}>
+                                    🎈 {new Date(item.birth_date).toLocaleDateString()}
+                                </Text>
+                            </Card.Content>
+                        </Card>
+                    )}
+                />
+            )}
 
-            {/* Mensagem Inspiradora */}
-            <Animated.View entering={FadeInDown.duration(1400).delay(400)}>
-                <Text style={styles.slogan}>Conectando vidas, compartilhando fé.</Text>
-            </Animated.View>
-
-            {/* Versão do App */}
-            <Animated.View entering={FadeInDown.duration(1600).delay(600)}>
-                <Text style={styles.version}>Versão 0.1.0 ⛪</Text>
-            </Animated.View>
+            {/* Seção de eventos */}
+            <Text style={styles.sectionTitle}>📅 Eventos da Semana</Text>
+            {loadingEvents ? (
+                <ActivityIndicator size="large" color="#3b5998" />
+            ) : (
+                <FlatList
+                    data={events}
+                    keyExtractor={(item) => item.id}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.listContainer}
+                    renderItem={({ item }) => (
+                        <Card style={styles.card}>
+                            <Card.Content>
+                                <Text style={styles.name}>{item.name}</Text>
+                                <Text style={styles.date}>
+                                    🗓 {new Date(item.event_date).toLocaleDateString()}
+                                </Text>
+                            </Card.Content>
+                        </Card>
+                    )}
+                />
+            )}
         </View>
     );
 }
@@ -28,29 +113,49 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
+        padding: 20,
         backgroundColor: '#f5f5f5',
     },
-    logo: {
-        width: 100,
-        height: 100,
+    title: {
+        fontSize: 28,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        color: '#3b5998',
+        marginBottom: 5,
+    },
+    subtitle: {
+        fontSize: 16,
+        textAlign: 'center',
+        color: '#666',
         marginBottom: 20,
     },
-    appName: {
-        fontSize: 32,
+    sectionTitle: {
+        fontSize: 18,
         fontWeight: 'bold',
+        marginTop: 20,
+        marginBottom: 10,
         color: '#3b5998',
     },
-    slogan: {
-        fontSize: 16,
-        fontStyle: 'italic',
-        color: '#666',
-        marginTop: 10,
+    listContainer: {
+        paddingLeft: 10,
     },
-    version: {
+    card: {
+        width: 160,
+        marginRight: 10,
+        padding: 10,
+        backgroundColor: '#FFF',
+        elevation: 3,
+        borderRadius: 8,
+        alignItems: 'center',
+    },
+    name: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        textAlign: 'center',
+    },
+    date: {
         fontSize: 14,
-        color: '#888',
-        marginTop: 20,
+        color: '#555',
+        textAlign: 'center',
     },
 });

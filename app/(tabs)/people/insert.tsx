@@ -13,7 +13,7 @@ const schema = yup.object({
     name: yup.string().required('Nome é obrigatório'),
     phone: yup.string().required('Telefone é obrigatório'),
     instagram: yup.string().optional(),
-    birthDate: yup.string().required('Data de Nascimento é obrigatória'), // Agora sempre será string
+    birth_date: yup.string().required('Data de Nascimento é obrigatória'), // Agora sempre será string
     type: yup.string().oneOf(['visitor', 'regular_attendee', 'member']).required('Tipo de pessoa é obrigatório'),
     parentName: yup.string().optional(),
     parentPhone: yup.string().optional(),
@@ -23,7 +23,7 @@ interface FormData {
     name: string;
     phone: string;
     instagram?: string;
-    birthDate: string; // Agora birthDate é sempre string
+    birth_date: string; // Agora birth_date é sempre string
     type: 'visitor' | 'regular_attendee' | 'member';
     parentName?: string;
     parentPhone?: string;
@@ -36,7 +36,7 @@ export default function PeopleInsertScreen() {
             name: '',
             phone: '',
             instagram: '',
-            birthDate: new Date().toISOString(), // Sempre armazenamos como string ISO
+            birth_date: new Date().toISOString(),
             type: 'visitor',
             parentName: '',
             parentPhone: '',
@@ -44,16 +44,16 @@ export default function PeopleInsertScreen() {
     });
 
     const [showDatePicker, setShowDatePicker] = useState(false);
-    const birthDate = watch('birthDate'); // birthDate agora sempre retorna string
-    const birthDateObj = new Date(birthDate); // Criamos um objeto Date para cálculos
+    const birth_date = watch('birth_date');
+    const birth_dateObj = new Date(birth_date);
 
-    const isMinor = new Date().getFullYear() - birthDateObj.getFullYear() < 18;
+    const isMinor = new Date().getFullYear() - birth_dateObj.getFullYear() < 18;
 
     const onSubmit = async (data: FormData) => {
         try {
             const formattedData = {
                 ...data,
-                birthDate: new Date(data.birthDate).toISOString(), // Garantimos que seja string ISO
+                birth_date: new Date(data.birth_date).toISOString(),
             };
             await createUser(formattedData);
 
@@ -99,20 +99,20 @@ export default function PeopleInsertScreen() {
 
             {/* Data de Nascimento */}
             <Button mode="outlined" onPress={() => setShowDatePicker(true)} style={styles.button}>
-                {birthDate ? `Data de Nascimento: ${birthDateObj.toLocaleDateString()}` : 'Selecionar Data de Nascimento'}
+                {birth_date ? `Data de Nascimento: ${birth_dateObj.toLocaleDateString()}` : 'Selecionar Data de Nascimento'}
             </Button>
             {showDatePicker && (
                 <DateTimePicker
-                    value={birthDateObj}
+                    value={birth_dateObj}
                     mode="date"
                     display="default"
                     onChange={(event, selectedDate) => {
                         setShowDatePicker(false);
-                        if (selectedDate) setValue('birthDate', selectedDate.toISOString()); // Sempre armazenamos string
+                        if (selectedDate) setValue('birth_date', selectedDate.toISOString()); // Sempre armazenamos string
                     }}
                 />
             )}
-            {errors.birthDate && <Text style={styles.errorText}>{errors.birthDate.message}</Text>}
+            {errors.birth_date && <Text style={styles.errorText}>{errors.birth_date.message}</Text>}
 
             {/* Campos para menores de idade */}
             {isMinor && (

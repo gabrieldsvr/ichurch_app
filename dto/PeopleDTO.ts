@@ -3,7 +3,7 @@ interface PeopleDTO {
     name: string;
     phone: string;
     instagram?: string;
-    birthDate: Date;
+    birth_date: Date;
     type: 'visitor' | 'regular_attendee' | 'member';
     parentName?: string;
     parentPhone?: string;

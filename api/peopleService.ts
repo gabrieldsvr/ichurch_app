@@ -13,7 +13,7 @@ export const createUser = async (userData: {
     name: string;
     phone: string;
     instagram?: string;
-    birthDate: string;
+    birth_date: string;
     type: 'visitor' | 'regular_attendee' | 'member';
     parentName?: string;
     parentPhone?: string;
