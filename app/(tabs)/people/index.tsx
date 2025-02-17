@@ -1,10 +1,10 @@
-import {useEffect, useLayoutEffect, useState} from 'react';
-import { FlatList, StyleSheet, View, RefreshControl, Alert, TextInput, Modal } from 'react-native';
-import { Button, Card, Text, IconButton, Switch } from 'react-native-paper';
-import { useNavigation, useRouter } from "expo-router";
-import { Picker } from '@react-native-picker/picker';
-import { api } from '@/api/peopleService';
-import { Stack } from 'expo-router';
+import {useEffect, useState} from 'react';
+import {Alert, FlatList, Modal, RefreshControl, StyleSheet, TextInput, View} from 'react-native';
+import {Button, Card, IconButton, Switch, Text} from 'react-native-paper';
+import {useNavigation, useRouter} from "expo-router";
+import {Picker} from '@react-native-picker/picker';
+import {api} from '@/api/peopleService';
+
 interface PeopleDTO {
     id: string;
     name: string;
@@ -20,9 +20,9 @@ export default function PeopleScreen() {
     const [filteredPeople, setFilteredPeople] = useState<PeopleDTO[]>([]);
     const [refreshing, setRefreshing] = useState(false);
     const [showFilterModal, setShowFilterModal] = useState(false);
-    const [filterType, setFilterType] = useState<string | null>('all');
+    const [filterType, setFilterType] = useState<string | null>(null);
     const [includeInactive, setIncludeInactive] = useState(false);
-    const [searchVisible, setSearchVisible] = useState(false);
+    const [showSearch, setShowSearch] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const router = useRouter();
     const navigation = useNavigation();
@@ -38,29 +38,31 @@ export default function PeopleScreen() {
                     <IconButton
                         icon="magnify"
                         size={24}
-                        onPress={toggleSearch}
+                        onPressOut={toggleSearch}
                         style={styles.headerIcon}
                     />
                     <IconButton
                         icon="filter"
                         size={24}
-                        onPress={() => setShowFilterModal(true)}
+                        onPressOut={() => setShowFilterModal(true)}
                         style={styles.headerIcon}
                     />
                 </View>
             ),
         });
-    }, [toggleSearch, setShowFilterModal]);
+    }, []);
+
 
     const toggleSearch = () => {
-        setSearchVisible((prev) => {
+        setShowSearch((prev) => {
             if (prev) {
-                setSearchQuery(''); // 🔥 Reseta a pesquisa ao esconder
-                setFilteredPeople(people);
+                fetchPeople();
+                setSearchQuery(''); // 🔥 Limpa o campo de busca
             }
             return !prev;
         });
     };
+
 
     const fetchPeople = async () => {
         try {
@@ -81,19 +83,25 @@ export default function PeopleScreen() {
         }
     };
 
+
     const handleEdit = (id: string) => {
         router.push({
             pathname: "/people/edit",
-            params: { id },
+            params: {id},
         });
     };
 
+
     const translateUserType = (type: string) => {
         switch (type) {
-            case 'visitor': return 'Visitante';
-            case 'regular_attendee': return 'Frequentador';
-            case 'member': return 'Membro';
-            default: return 'Desconhecido';
+            case 'visitor':
+                return 'Visitante';
+            case 'regular_attendee':
+                return 'Frequentador';
+            case 'member':
+                return 'Membro';
+            default:
+                return 'Desconhecido';
         }
     };
 
@@ -127,141 +135,157 @@ export default function PeopleScreen() {
 
     const resetFilters = () => {
         setSearchQuery('');
-        setFilterType('all');
+        setFilterType(null);
         setIncludeInactive(false);
         setFilteredPeople(people);
         setShowFilterModal(false);
     };
 
-    const [count, setCount] = useState(0);
-
-
-    useLayoutEffect(() => {
-        // 🔥 Atualiza dinamicamente o botão no header
-        navigation.setOptions({
-            headerRight: () => (
-                <Button title={`Contar: ${count}`} onPress={() => setCount((c) => c + 1)} />
-            ),
-        });
-    }, [count]); // 🚀 Atualiza sempre que count muda
+    const handleCloseModal = () => {
+        setShowFilterModal(false);
+    }
+    const filterPeople = (query: string) => {
+        setSearchQuery(query);
+        if (!query) {
+            setFilteredPeople(people);
+        } else {
+            const filteredList = people.filter(person =>
+                person.name.toLowerCase().includes(query.toLowerCase())
+            );
+            setFilteredPeople(filteredList);
+        }
+    };
 
     return (
-       <>
-           <Text>Count: {count}</Text>
-           <View style={styles.container}>
-               {searchVisible && (
-                   <TextInput
-                       placeholder="Pesquisar por nome..."
-                       style={styles.searchInput}
-                       value={searchQuery}
-                       onChangeText={(query) => setSearchQuery(query)}
-                   />
-               )}
+        <View style={styles.container}>
+            {showSearch && (
+                <View style={styles.searchContainer}>
+                    <TextInput
+                        placeholder="Pesquisar por nome..."
+                        style={styles.searchInput}
+                        value={searchQuery}
+                        onChangeText={filterPeople}
+                    />
+                    <IconButton
+                        icon="close"
+                        size={20}
+                        onPress={toggleSearch}
+                        style={styles.searchCloseIcon}
+                    />
+                </View>
+            )}
 
-               <FlatList
-                   data={filteredPeople}
-                   keyExtractor={(item) => item.id}
-                   refreshControl={<RefreshControl refreshing={refreshing} onRefresh={fetchPeople} />}
-                   renderItem={({ item }) => (
-                       <Card style={[styles.card, !item.status && styles.inactiveCard]}>
-                           <Card.Content style={styles.cardContent}>
-                               <View style={styles.userInfo}>
-                                   <Text style={styles.userName}>{item.name}</Text>
-                                   <Text style={styles.userType}>{translateUserType(item.type)}</Text>
-                                   <Text style={styles.userPhone}>📞 {item.phone}</Text>
-                                   {item.instagram && <Text style={styles.userInstagram}>📷 {item.instagram}</Text>}
-                                   <Text
-                                       style={styles.userBirthDate}>🎂 {new Date(item.birth_date).toLocaleDateString()}</Text>
-                               </View>
-                               <View style={styles.actionButtons}>
-                                   <IconButton
-                                       icon="pencil"
-                                       iconColor="blue"
-                                       size={24}
-                                       onPress={() => handleEdit(item.id)}
-                                       style={styles.iconButton}
-                                   />
-                                   <IconButton
-                                       icon={item.status ? "delete" : "account-check"}
-                                       iconColor={item.status ? "red" : "green"}
-                                       size={24}
-                                       onPress={() => toggleStatus(item.id)}
-                                       style={styles.iconButton}
-                                   />
-                               </View>
-                           </Card.Content>
-                       </Card>
-                   )}
-               />
+            <FlatList
+                data={filteredPeople}
+                keyExtractor={(item) => item.id}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={fetchPeople}/>}
+                renderItem={({item}) => (
+                    <Card style={[styles.card, !item.status && styles.inactiveCard]}>
+                        <Card.Content style={styles.cardContent}>
+                            <View style={styles.userInfo}>
+                                <Text style={styles.userName}>{item.name}</Text>
+                                <Text style={styles.userType}>{translateUserType(item.type)}</Text>
+                                <Text style={styles.userPhone}>📞 {item.phone}</Text>
+                                {item.instagram && <Text style={styles.userInstagram}>📷 {item.instagram}</Text>}
+                                <Text
+                                    style={styles.userBirthDate}>🎂 {new Date(item.birth_date).toLocaleDateString()}</Text>
+                            </View>
+                            <View style={styles.actionButtons}>
+                                <IconButton
+                                    icon="pencil"
+                                    iconColor="blue"
+                                    size={28}
+                                    onPress={() => handleEdit(item.id)}
+                                />
+                                <IconButton
+                                    icon={item.status ? "delete" : "account-check"}
+                                    iconColor={item.status ? "red" : "green"}
+                                    size={28}
+                                    onPress={() => toggleStatus(item.id)}
+                                />
+                            </View>
+                        </Card.Content>
+                    </Card>
+                )}
+            />
 
-               {/* MODAL DE FILTROS */}
-               <Modal visible={showFilterModal} animationType="slide" transparent>
-                   <View style={styles.modalContainer}>
-                       <View style={styles.modalContent}>
+            {/* MODAL DE FILTROS */}
+            <Modal visible={showFilterModal} animationType="slide" transparent>
+
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+
+
+                       <View  style={styles.modalTitleContainer}>
                            <IconButton
                                icon="close"
-                               size={30}
+                               size={35}
                                style={styles.closeButton}
-                               onPress={() => setShowFilterModal(false)}
+                               onPress={handleCloseModal}
                            />
-
-                           <Text style={styles.modalTitle}>Filtros</Text>
-
-                           <Text style={styles.filterLabel}>Tipo de Pessoa:</Text>
-                           <Picker
-                               selectedValue={filterType}
-                               onValueChange={(value) => setFilterType(value)}
-                               style={styles.picker}
-                           >
-                               <Picker.Item label="Todos" value="all" />
-                               <Picker.Item label="Visitante" value="visitor" />
-                               <Picker.Item label="Frequentador" value="regular_attendee" />
-                               <Picker.Item label="Membro" value="member" />
-                           </Picker>
-
-                           <View style={styles.switchContainer}>
-                               <Text style={styles.filterLabel}>Incluir Inativos:</Text>
-                               <Switch
-                                   value={includeInactive}
-                                   onValueChange={() => setIncludeInactive(!includeInactive)}
-                               />
-                           </View>
-
-                           <View style={styles.modalActions}>
-                               <Button mode="outlined" onPress={resetFilters}>
-                                   Resetar
-                               </Button>
-                               <Button mode="contained" onPress={applyFilters} style={styles.applyFilterButton}>
-                                   Aplicar
-                               </Button>
-                           </View>
                        </View>
-                   </View>
-               </Modal>
-           </View></>
+
+                        <Text style={styles.filterLabel}>Tipo de Pessoa:</Text>
+                        <Picker
+                            selectedValue={filterType}
+                            onValueChange={(value) => setFilterType(value)}
+                            style={styles.picker}
+                        >
+                            <Picker.Item label="Todos" value="all"/>
+                            <Picker.Item label="Visitante" value="visitor"/>
+                            <Picker.Item label="Frequentador" value="regular_attendee"/>
+                            <Picker.Item label="Membro" value="member"/>
+                        </Picker>
+
+                        <View style={styles.switchContainer}>
+                            <Text style={styles.filterLabel}>Incluir Inativos:</Text>
+                            <Switch
+                                value={includeInactive}
+                                onValueChange={() => setIncludeInactive(!includeInactive)}
+                            />
+                        </View>
+
+                        <View style={styles.modalActions}>
+                            <Button mode="outlined" onPress={resetFilters}>
+                                Resetar
+                            </Button>
+                            <Button mode="contained" onPress={applyFilters} style={styles.applyFilterButton}>
+                                Aplicar
+                            </Button>
+                        </View>
+
+                    </View>
+                </View>
+            </Modal>
+        </View>
     );
 }
 
-const styles = StyleSheet.create({
-    container: { flex: 1, padding: 20, backgroundColor: '#f5f5f5' },
 
-    /* 🔍 Barra de Pesquisa */
+const styles = StyleSheet.create({
+    container: {flex: 1, padding: 20, backgroundColor: '#f5f5f5'},
+
+    /* 🔍 Barra Superior com Ícones */
+    topBar: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        marginBottom: 10,
+    },
+
+    /* 🔎 Campo de Pesquisa */
     searchInput: {
         marginBottom: 10,
         padding: 10,
         fontSize: 16,
         borderRadius: 8,
-        backgroundColor: '#fff'
+        backgroundColor: '#fff',
+        elevation: 2,
     },
 
-    /* 📌 Botões no Header */
-    headerButtons: {
-        flexDirection: "row",
-        marginRight: 10
-    },
-
-    headerIcon: {
-        marginHorizontal: 5
+    /* 📌 Botão de Filtro */
+    filterButton: {
+        alignSelf: 'flex-end',
+        marginBottom: 10,
     },
 
     /* 📋 Cartões de Usuário */
@@ -270,63 +294,49 @@ const styles = StyleSheet.create({
         padding: 10,
         borderRadius: 10,
         backgroundColor: 'white',
-        elevation: 3
+        elevation: 3,
     },
 
     inactiveCard: {
         backgroundColor: '#F5F5F5',
-        opacity: 0.7
+        opacity: 0.7,
     },
 
     cardContent: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center'
+        alignItems: 'center',
     },
 
     userInfo: {
-        flex: 1
+        flex: 1,
     },
 
     userName: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#333'
+        color: '#333',
     },
 
     userType: {
         fontSize: 14,
         color: '#555',
-        marginBottom: 5
+        marginBottom: 5,
     },
 
     userPhone: {
         fontSize: 14,
-        color: '#00796B'
+        color: '#00796B',
     },
 
     userInstagram: {
         fontSize: 14,
-        color: '#D81B60'
+        color: '#D81B60',
     },
 
     userBirthDate: {
         fontSize: 14,
-        color: '#6A1B9A'
-    },
-
-    /* 🔧 Botões de Ação */
-    actionButtons: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 2
-    },
-
-    iconButton: {
-        padding: 4,
-        marginHorizontal: 2,
-        width: 28,
-        height: 28
+        color: '#6A1B9A',
     },
 
     /* 📌 Modal de Filtros */
@@ -334,7 +344,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(0,0,0,0.5)'
+        backgroundColor: 'rgba(0,0,0,0.5)',
     },
 
     modalContent: {
@@ -343,21 +353,17 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         borderRadius: 10,
         elevation: 5,
-        position: 'relative'
+        position: 'relative',
     },
 
-    modalTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginBottom: 15,
-        textAlign: 'center'
+    modalTitleContainer: {
+        width: '100%', // 🔥 Ocupa a largura total
+        flexDirection: 'row', // 🔥 Mantém o layout em linha
+        justifyContent: 'flex-end', // 🔥 Alinha o item à direita
+        alignItems: 'center', // 🔥 Centraliza verticalmente
     },
-
-    /* ❌ Botão Fechar no Modal */
     closeButton: {
-        position: 'absolute',
-        top: 10,
-        right: 10
+        marginRight: 10, // 🔥 Garante um pequeno espaçamento da borda
     },
 
     /* 🔄 Switch para Incluir Inativos */
@@ -365,29 +371,77 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginTop: 10
+        marginTop: 10,
     },
 
     filterLabel: {
         fontSize: 16,
         fontWeight: 'bold',
-        marginBottom: 10
+        marginBottom: 10,
     },
 
     picker: {
         marginBottom: 15,
         backgroundColor: '#f5f5f5',
-        borderRadius: 8
+        borderRadius: 8,
     },
 
     modalActions: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginTop: 20
+        marginTop: 20,
     },
 
     applyFilterButton: {
-        marginLeft: 10
-    }
+        marginLeft: 10,
+    },
+
+    actionButtons: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 2, // 🔥 Reduzindo o espaçamento entre os botões
+    },
+
+    editButton: {
+        borderRadius: 20, // 🔥 Tornando o botão mais compacto
+        padding: 2, // 🔥 Reduzindo a área de toque
+        width: 28,
+        height: 28,
+    },
+
+    deleteButton: {
+        borderRadius: 20,
+        padding: 2,
+        width: 28,
+        height: 28,
+    },
+    headerButtons: {
+        flexDirection: "row",
+        gap: 10, // 🔥 Mantém os ícones organizados
+        marginRight: 10, // 🔥 Garante que fiquem alinhados à direita
+    },
+
+    headerIcon: {
+        backgroundColor: "transparent", // 🔥 Remove qualquer fundo branco
+        marginHorizontal: 5,
+    },
+    searchCloseIcon: {
+        position: 'absolute',
+        right: 10,
+        backgroundColor: 'transparent',
+    },
+    searchContainer: {
+        flexDirection: 'row',  // 🔥 Deixa a lupa, input e X na mesma linha
+        alignItems: 'center',  // 🔥 Alinha os itens no centro verticalmente
+        backgroundColor: '#fff',  // 🔥 Mantém o fundo branco para destaque
+        borderRadius: 8,  // 🔥 Bordas arredondadas para um design mais clean
+        paddingHorizontal: 10,  // 🔥 Adiciona um espaçamento interno
+        elevation: 3,  // 🔥 Dá um efeito de sombra no Android
+        shadowColor: '#000',  // 🔥 Dá um efeito de sombra no iOS
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        shadowOffset: {width: 0, height: 2},
+        marginBottom: 10,  // 🔥 Dá um espaço entre a busca e os outros componentes
+    },
 });
 
