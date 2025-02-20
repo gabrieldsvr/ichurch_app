@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { View, StyleSheet, Alert } from "react-native";
 import { Button, Text, useTheme } from "react-native-paper";
 import * as DocumentPicker from "expo-document-picker";
-import { api } from "@/src/api/peopleService";
 import { useAppTheme } from "@/src/contexts/ThemeProvider";
+import api from "@/src/api/api";
 
 export default function Upload() {
     const { theme } = useAppTheme(); // 🔥 Obtendo o tema atual

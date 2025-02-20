@@ -17,8 +17,8 @@ import {
     useTheme
 } from "react-native-paper";
 import { router } from "expo-router";
-import { api } from "@/src/api/peopleService";
 import {useAppTheme} from "@/src/contexts/ThemeProvider";
+import api from "@/src/api/api";
 
 interface EventDTO {
     id: string;
@@ -40,7 +40,7 @@ export default function EventsScreen() {
     const fetchEvents = async () => {
         try {
             setRefreshing(true);
-            const response = await api.get("/events");
+            const response = await api.get("/community/events");
             setEvents(response.data);
         } catch (error) {
             console.error("Erro ao buscar eventos:", error);
@@ -78,7 +78,8 @@ export default function EventsScreen() {
                     style: "destructive",
                     onPress: async () => {
                         try {
-                            await api.delete(`/events/${eventId}`);
+                            console.log(eventId)
+                            await api.delete(`/community/events/${eventId}`);
                             Alert.alert("Sucesso", "Evento excluído com sucesso.");
                             fetchEvents();
                         } catch (error) {
@@ -132,17 +133,26 @@ export default function EventsScreen() {
                                         }
                                     >
                                         <Menu.Item
-                                            onPress={() => handleEventPress(item.id)}
+                                            onPress={() => {
+                                                toggleMenu(item.id)
+                                                handleEventPress(item.id)
+                                            }}
                                             title="Ver Detalhes"
                                             leadingIcon="eye"
                                         />
                                         <Menu.Item
-                                            onPress={() => handleEditEvent(item.id)}
+                                            onPress={() => {
+                                                toggleMenu(item.id)
+                                                handleEditEvent(item.id)
+                                            }}
                                             title="Editar"
                                             leadingIcon="pencil"
                                         />
                                         <Menu.Item
-                                            onPress={() => handleDeleteEvent(item.id)}
+                                            onPress={() => {
+                                                toggleMenu(item.id)
+                                                handleDeleteEvent(item.id)
+                                            }}
                                             title="Excluir"
                                             leadingIcon="delete"
                                             titleStyle={{ color: theme.colors.error }}

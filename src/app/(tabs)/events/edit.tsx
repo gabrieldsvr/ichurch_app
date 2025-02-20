@@ -3,7 +3,7 @@ import { View, StyleSheet, Alert } from "react-native";
 import { Button, Text, TextInput, useTheme, ActivityIndicator } from "react-native-paper";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useLocalSearchParams, router } from "expo-router";
-import { api } from "@/src/api/peopleService";
+import api from "@/src/api/api";
 
 export default function EditEventScreen() {
     const theme = useTheme(); // 🔥 Obtém o tema atual
@@ -20,7 +20,8 @@ export default function EditEventScreen() {
 
     const fetchEventDetails = async () => {
         try {
-            const response = await api.get(`/events/${eventId}`);
+            console.log(eventId)
+            const response = await api.get(`/community/events/${eventId}`);
             setEventName(response.data.name);
             setEventDate(new Date(response.data.event_date));
             setEventDescription(response.data.description || "");
@@ -39,7 +40,7 @@ export default function EditEventScreen() {
         }
 
         try {
-            await api.put(`/events/${eventId}`, {
+            await api.put(`/community/events/${eventId}`, {
                 name: eventName,
                 event_date: eventDate.toISOString(),
                 description: eventDescription,

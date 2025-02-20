@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
-import { Alert, FlatList, Modal, RefreshControl, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
-import { Avatar, Button, FAB, IconButton, Menu, Switch, Text, useTheme } from 'react-native-paper';
-import { useNavigation, useRouter } from "expo-router";
-import { api } from '@/src/api/peopleService';
-import { useAppTheme } from "@/src/contexts/ThemeProvider";
+import {useEffect, useState} from 'react';
+import {Alert, FlatList, Modal, RefreshControl, StyleSheet, TextInput, TouchableOpacity, View} from 'react-native';
+import {Avatar, Button, FAB, IconButton, Menu, Switch, Text} from 'react-native-paper';
+import {useNavigation, useRouter} from "expo-router";
+import {getUsers} from '@/src/api/peopleService';
+import {useAppTheme} from "@/src/contexts/ThemeProvider";
 import {Picker} from "@react-native-picker/picker";
+import api from "@/src/api/api";
 
 export default function PeopleScreen() {
     const theme = useAppTheme().theme;
@@ -60,9 +61,9 @@ export default function PeopleScreen() {
     const fetchPeople = async () => {
         try {
             setRefreshing(true);
-            const statusParam = includeInactive ? "" : "?status=true";
-            const response = await api.get(`/people${statusParam}`);
-            const sortedPeople = response.data.sort((a: PeopleDTO, b: PeopleDTO) =>
+            const statusParam = includeInactive ? "" : "?status=active";
+            const users = await getUsers(statusParam);
+            const sortedPeople = users.data.sort((a: PeopleDTO, b: PeopleDTO) =>
                 a.name.localeCompare(b.name)
             );
 
@@ -113,7 +114,7 @@ export default function PeopleScreen() {
 
     const toggleStatus = async (id: string) => {
         try {
-            const response = await api.patch(`/people/${id}/toggle-status`);
+            const response = await api.patch(`community/people/${id}/toggle-status`);
             fetchPeople();
             Alert.alert("Sucesso", response.data.message);
         } catch (error: any) {

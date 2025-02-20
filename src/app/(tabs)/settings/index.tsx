@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import {View, StyleSheet, ScrollView} from 'react-native';
 import { Button, Text, Divider, Switch, useTheme, List, IconButton, Modal, Portal } from 'react-native-paper';
 import { router } from "expo-router";
 import { useAppTheme } from '@/src/contexts/ThemeProvider';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function SettingsScreen() {
     const { toggleTheme, isDark } = useAppTheme();
@@ -14,8 +15,16 @@ export default function SettingsScreen() {
     // Estado para o modal de idioma
     const [showLanguageModal, setShowLanguageModal] = useState(false);
     const [selectedLanguage, setSelectedLanguage] = useState('pt-BR'); // Default: Português 🇧🇷
-
+    const logout = async () => {
+        try {
+            await AsyncStorage.removeItem("token"); // 🔥 Remove o token do armazenamento
+            router.replace("/login");
+        } catch (error) {
+            console.error("Erro ao fazer logout:", error);
+        }
+    };
     return (
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
             {/* 🔥 Alternar Tema */}
             <List.Item
@@ -71,7 +80,15 @@ export default function SettingsScreen() {
             >
                 Ver Eventos
             </Button>
-
+            <Button
+                icon="logout"
+                mode="contained"
+                onPress={() => logout()} // 🔥 Chama a função de logout
+                style={styles.button}
+                textColor={theme.colors.onPrimary}
+            >
+                Sair da Conta
+            </Button>
             {/* 📂 Importar Pessoas via Excel */}
             <Button
                 icon="file-upload"
@@ -112,6 +129,7 @@ export default function SettingsScreen() {
                 </Modal>
             </Portal>
         </View>
+        </ScrollView>
     );
 }
 
@@ -119,6 +137,9 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 20,
+    },
+    scrollContainer: {
+        flexGrow: 1,
     },
     title: {
         fontSize: 24,

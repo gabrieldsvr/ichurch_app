@@ -6,7 +6,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { api } from "@/src/api/peopleService";
+import api from "@/src/api/api";
 
 interface EventForm {
     name: string;
@@ -36,7 +36,7 @@ export default function EventInsertScreen() {
 
     const onSubmit = async (data: EventForm) => {
         try {
-            await api.post("/events/", data);
+            await api.post("/community/events/", data);
             Alert.alert("Sucesso", "Evento cadastrado com sucesso!", [
                 { text: "OK", onPress: () => router.push("/events") },
             ]);
@@ -113,7 +113,7 @@ export default function EventInsertScreen() {
                 mode="contained"
                 onPress={handleSubmit(onSubmit)}
                 style={styles.button}
-                textColor={theme.colors.onSurface}
+                textColor={theme.colors.onPrimary}
             >
                 Cadastrar Evento
             </Button>

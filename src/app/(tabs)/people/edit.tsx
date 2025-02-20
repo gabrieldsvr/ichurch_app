@@ -6,8 +6,8 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { Controller, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { api } from '@/src/api/peopleService';
 import { router, useLocalSearchParams } from 'expo-router';
+import api from "@/src/api/api";
 
 const schema = yup.object({
     name: yup.string().required('Nome é obrigatório'),
@@ -55,7 +55,8 @@ export default function PeopleEditScreen() {
 
     const fetchUser = async () => {
         try {
-            const response = await api.get(`/people/${id}`);
+            const response = await api.get(`community/people/${id}`);
+            console.log(response)
             const userData = response.data;
 
             setValue('name', userData.name);
@@ -81,7 +82,7 @@ export default function PeopleEditScreen() {
                 birth_date: new Date(data.birth_date).toISOString(),
             };
 
-            await api.put(`/people/${id}`, formattedData);
+            await api.put(`community/people/${id}`, formattedData);
 
             Alert.alert('Sucesso', 'Usuário atualizado com sucesso!');
             router.replace('/people'); // Redireciona para a lista de pessoas

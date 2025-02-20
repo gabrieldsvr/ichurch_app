@@ -1,13 +1,5 @@
-import axios from 'axios';
+import api from "@/src/api/api";
 
-const API_URL = 'https://ichurch-backend.com.br';
-
-export const api = axios.create({
-    baseURL: API_URL,
-    headers: {
-        'Content-Type': 'application/json',
-    },
-});
 
 export const createUser = async (userData: {
     name: string;
@@ -27,12 +19,11 @@ export const createUser = async (userData: {
     }
 };
 
-export const getUsers = async () => {
+export const getUsers = async (statusParam: string = "") => {
     try {
-        const response = await api.get('/people');
-        return response.data;
+        return await api.get(`/community/people${statusParam}`);
     } catch (error) {
-        console.error('Erro ao buscar usuários:', error);
+        console.error("Erro ao buscar usuários:", error);
         throw error;
     }
 };

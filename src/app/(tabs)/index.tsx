@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, FlatList, StyleSheet } from 'react-native';
 import { Text, Card, ActivityIndicator, useTheme } from 'react-native-paper';
-import { api } from '@/src/api/peopleService';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import {ThemeProvider, useAppTheme} from '@/src/contexts/ThemeProvider';
+import api from "@/src/api/api";
 interface BirthdayDTO {
     id: string;
     name: string;
