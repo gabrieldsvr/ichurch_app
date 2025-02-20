@@ -36,7 +36,6 @@ export default function EventSelfCheckInScreen() {
 
     const fetchEventData = async () => {
         try {
-            console.log(eventId)
             const response = await api.get(`/community/events/${eventId}`);
 
             if (response.data) {
@@ -55,10 +54,13 @@ export default function EventSelfCheckInScreen() {
     const fetchPeople = async (eventId: string) => {
         try {
             const response = await api.get(`/community/events/${eventId}/people`);
-            const sortedPeople = response.data.map((person: Person) => ({
-                ...person,
-                present: person.present || false, // Garante que a propriedade esteja definida
-            })).sort((a: Person, b: Person) => a.name.localeCompare(b.name));
+            const sortedPeople = response.data
+                .map((person: Person): Person => ({
+                    ...person,
+                    present: person.present || false, // Garante que a propriedade esteja definida
+                }))
+                .filter((person: Person) => !person.present) // Filtra apenas os não presentes
+                .sort((a: Person, b: Person) => a.name.localeCompare(b.name));
 
             setPeople(sortedPeople);
             setFilteredPeople(sortedPeople);
@@ -90,18 +92,21 @@ export default function EventSelfCheckInScreen() {
                     person.id === id ? { ...person, present: true } : person
                 )
             );
+
             setFilteredPeople(prevFiltered =>
-                prevFiltered.map(person =>
-                    person.id === id ? { ...person, present: true } : person
-                )
+                prevFiltered
+                    .map(person =>
+                        person.id === id ? { ...person, present: true } : person
+                    )
+                    .filter(person => !person.present) // Remove os presentes da listagem
             );
 
-            Alert.alert("Check-in realizado!", "Sua presença foi confirmada.");
         } catch (error) {
             console.error("Erro ao registrar check-in:", error);
             Alert.alert("Erro", "Falha ao registrar presença. Tente novamente.");
         }
     };
+
 
     return (
         <KeyboardAvoidingView style={styles.container}>
@@ -127,8 +132,7 @@ export default function EventSelfCheckInScreen() {
                         <Animated.View entering={FadeIn}>
                             <Card
                                 style={[
-                                    styles.card,
-                                    item.present && { backgroundColor: theme.colors.primaryContainer }
+                                    styles.card, { backgroundColor: theme.colors.primary }
                                 ]}
                                 onPress={() => !item.present && handleCheckIn(item.id)}
                             >
@@ -137,19 +141,12 @@ export default function EventSelfCheckInScreen() {
                                         <MaterialCommunityIcons
                                             name={item.present ? "check-circle" : "account"}
                                             size={28}
-                                            color={item.present ? theme.colors.primary : theme.colors.onSurface}
+                                            color={item.present ? theme.colors.primary : theme.colors.onPrimary}
                                         />
                                         <Text style={styles.personText}>
                                             {item.name} - {item.phone}
                                         </Text>
                                     </View>
-                                    <Button
-                                        mode="contained"
-                                        disabled={item.present}
-                                        onPress={() => handleCheckIn(item.id)}
-                                    >
-                                        {item.present ? "Presente" : "Check-in"}
-                                    </Button>
                                 </Card.Content>
                             </Card>
                         </Animated.View>
