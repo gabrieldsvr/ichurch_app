@@ -30,7 +30,7 @@ export default function HomeScreen() {
 
     const fetchBirthdays = async () => {
         try {
-            const response = await api.get('/reports/birthdays-this-week');
+            const response = await api.get('/community/reports/birthdays-this-week');
             setBirthdays(response.data);
         } catch (error: any) {
             console.error('Erro ao buscar aniversariantes:', error.message);
@@ -41,7 +41,7 @@ export default function HomeScreen() {
 
     const fetchEvents = async () => {
         try {
-            const response = await api.get('/events?week=true'); // 🔥 Ajuste a rota conforme necessário
+            const response = await api.get('/community/events?week=true'); // 🔥 Ajuste a rota conforme necessário
             setEvents(response.data);
         } catch (error: any) {
             console.error('Erro ao buscar eventos:', error.message);
