@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, FlatList, StyleSheet, View, Modal } from "react-native";
-import { Button, Card, Checkbox, Divider, Text, TextInput, IconButton, useTheme } from "react-native-paper";
+import { Alert, FlatList, Modal, StyleSheet, View } from "react-native";
+import { Button, Card, Checkbox, Divider, IconButton, Text, TextInput, useTheme } from "react-native-paper";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Animated, { FadeIn } from "react-native-reanimated";
-import {Picker} from "@react-native-picker/picker";
+import { Picker } from "@react-native-picker/picker";
 import api from "@/src/api/api";
 
 interface Person {
@@ -23,13 +23,14 @@ export default function EventAttendanceScreen() {
     const [filteredPeople, setFilteredPeople] = useState<Person[]>([]);
     const [pendingChanges, setPendingChanges] = useState<{ id: string; present: boolean }[]>([]);
     const [loading, setLoading] = useState(true);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [selectedType, setSelectedType] = useState<string | null>('all');
+    const [searchQuery, setSearchQuery] = useState("");
+    const [selectedType, setSelectedType] = useState<string | null>("all");
     const [showFilterModal, setShowFilterModal] = useState(false);
 
     useEffect(() => {
         fetchPeople();
     }, [eventId]);
+
     useEffect(() => {
         navigation.setOptions({
             headerRight: () => (
@@ -45,10 +46,10 @@ export default function EventAttendanceScreen() {
 
     const fetchPeople = async () => {
         try {
-            const response = await api.get(`/attendance/event/${eventId}`);
-            const sortedPeople = response.data.attendees.sort((a: Person, b: Person) =>
-                a.name.localeCompare(b.name)
-            );
+            console.log(eventId)
+            const response = await api.get(`/community/events/${eventId}/people`);
+            const sortedPeople = response.data.sort((a: Person, b: Person) => a.name.localeCompare(b.name));
+
             setPeople(sortedPeople);
             setFilteredPeople(sortedPeople);
         } catch (error) {
@@ -64,8 +65,7 @@ export default function EventAttendanceScreen() {
             if (existingChange) {
                 return prevChanges.filter(change => change.id !== id);
             }
-            const currentPerson = people.find(p => p.id === id);
-            return [...prevChanges, { id, present: !currentPerson?.present }];
+            return [...prevChanges, { id, present: !people.find(p => p.id === id)?.present }];
         });
 
         setPeople(prevPeople =>
@@ -137,7 +137,7 @@ export default function EventAttendanceScreen() {
 
     const handleCloseModal = () => {
         setShowFilterModal(false);
-    }
+    };
 
     const filterPeople = (query: string, type: string | null) => {
         let filteredList = people;
@@ -156,9 +156,7 @@ export default function EventAttendanceScreen() {
     };
 
     return (
-        <Animated.View style={[styles.container, { backgroundColor: theme.colors.background }]}
-                       entering={FadeIn.duration(600)}
-        >
+        <Animated.View style={[styles.container, { backgroundColor: theme.colors.background }]} entering={FadeIn.duration(600)}>
             <TextInput
                 placeholder="Pesquisar participante..."
                 style={[styles.searchInput, { backgroundColor: theme.colors.surface }]}
@@ -203,55 +201,16 @@ export default function EventAttendanceScreen() {
             <Button
                 mode="contained"
                 disabled={pendingChanges.length === 0}
-                style={[
-                    styles.button,
-                    pendingChanges.length === 0 ? { backgroundColor: theme.colors.surfaceDisabled, opacity: 0.5 } : {},
-                ]}
+                style={[styles.button, pendingChanges.length === 0 ? { backgroundColor: theme.colors.surfaceDisabled, opacity: 0.5 } : {}]}
                 onPress={confirmAttendance}
             >
                 Confirmar Presença
             </Button>
-
-            {/* Modal de Filtro */}
-            <Modal visible={showFilterModal} transparent animationType="slide">
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <View  style={styles.modalTitleContainer}>
-                            <IconButton
-                                icon="close"
-                                size={35}
-                                style={styles.closeButton}
-                                onPress={handleCloseModal}
-                            />
-                        </View>
-
-                        {/* 🔹 Picker para selecionar o tipo de participante */}
-                        <Picker
-                            selectedValue={selectedType}
-                            onValueChange={(itemValue) => {
-                                handleFilterByType(itemValue);
-                                setShowFilterModal(false); // 🔥 Fecha automaticamente após selecionar
-                            }}
-                            style={styles.picker}
-                        >
-                            <Picker.Item label="Todos" value="all" />
-                            <Picker.Item label="Visitantes" value="visitor" />
-                            <Picker.Item label="Frequentadores" value="regular_attendee" />
-                            <Picker.Item label="Membros" value="member" />
-                        </Picker>
-                    </View>
-                </View>
-            </Modal>
-
-
         </Animated.View>
     );
 }
+
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 20
-    },
     closeButton: {
         position: "absolute",
         top: 10,
@@ -264,7 +223,6 @@ const styles = StyleSheet.create({
         fontSize: 22,
         fontWeight: "bold"
     },
-
     searchInput: {
         marginBottom: 10,
         fontSize: 16,
@@ -272,43 +230,12 @@ const styles = StyleSheet.create({
         backgroundColor: "transparent",
         borderWidth: 1,
     },
-
-    card: {
-        marginBottom: 10,
-        padding: 10,
-        elevation: 3,
-        borderRadius: 8
-    },
-
-    cardContent: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center"
-    },
-
-    personInfo: {
-        flexDirection: "row",
-        alignItems: "center"
-    },
-
-    personText: {
-        fontSize: 16,
-        marginLeft: 8,
-        fontWeight: "500" // 🔹 Torna o nome do participante mais destacado
-    },
-
-    button: {
-        marginTop: 20,
-        borderRadius: 8
-    },
-
     modalContainer: {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "rgba(0,0,0,0.5)" // 🔥 Fundo escuro semi-transparente
     },
-
     modalContent: {
         width: "85%",
         padding: 20,
@@ -317,7 +244,6 @@ const styles = StyleSheet.create({
         alignItems: "center",
         elevation: 5
     },
-
     modalTitle: {
         fontSize: 20,
         fontWeight: "bold",
@@ -337,5 +263,10 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         marginBottom: 15
     },
-
+    container: { flex: 1, padding: 20 },
+    card: { marginBottom: 10, padding: 10, elevation: 3, borderRadius: 8 },
+    cardContent: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+    personInfo: { flexDirection: "row", alignItems: "center" },
+    personText: { fontSize: 16, marginLeft: 8, fontWeight: "500" },
+    button: { marginTop: 20, borderRadius: 8 },
 });

@@ -11,7 +11,7 @@ export const createUser = async (userData: {
     parentPhone?: string;
 }) => {
     try {
-        const response = await api.post('/people', userData);
+        const response = await api.post('/community/people', userData);
         return response.data;
     } catch (error) {
         console.error('Erro ao criar usuário:', error);

@@ -43,6 +43,10 @@ export default function EventLayout() {
                 name="event_attendance"
                 options={{ title: "Registro de Presença" }}
             />
+                    <Stack.Screen
+                        name="checkin"
+                        options={{ title: "Checkin" }}
+                    />
         </Stack>
         </ThemeProvider>
     );

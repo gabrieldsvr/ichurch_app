@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import {View, StyleSheet, ActivityIndicator, ScrollView} from 'react-native';
 import {Button, Text, Card, Divider, useTheme} from 'react-native-paper';
 import { router, useLocalSearchParams } from 'expo-router';
 import Animated, { FadeIn } from 'react-native-reanimated';
@@ -67,6 +67,8 @@ export default function EventDetailsScreen() {
     }
 
     return (
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+
         <Animated.View style={[styles.container,{ backgroundColor: theme.colors.background }]} entering={FadeIn.duration(600)}>
             {/* Card com detalhes do evento */}
             <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
@@ -92,15 +94,26 @@ export default function EventDetailsScreen() {
                     </View>
                 </Card.Content>
                 <Card.Actions>
-                    <Button
-                        mode="contained"
-                        icon="clipboard-check"
-                        onPress={() => router.push(`/events/${eventId}/event_attendance`)}
-                        textColor={theme.colors.onPrimary}
-                        style={[styles.button, { backgroundColor: theme.colors.primary }]}
-                    >
-                        Registrar Presença
-                    </Button>
+                       <View style={{flex:1}}>
+                           <Button
+                               mode="contained"
+                               icon="clipboard-check"
+                               onPress={() => router.push(`/events/${eventId}/event_attendance`)}
+                               textColor={theme.colors.onPrimary}
+                               style={[styles.button, { backgroundColor: theme.colors.primary }]}
+                           >
+                               Registrar Presença
+                           </Button>
+                           <Button
+                               mode="contained"
+                               icon="clipboard-check"
+                               onPress={() => router.push(`/events/${eventId}/checkin`)}
+                               textColor={theme.colors.onPrimary}
+                               style={[styles.button, { backgroundColor: theme.colors.primary }]}
+                           >
+                               Abrir check-in
+                           </Button>
+                       </View>
                 </Card.Actions>
             </Card>
 
@@ -146,10 +159,14 @@ export default function EventDetailsScreen() {
                 )}
             </Card>
         </Animated.View>
+        </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
+    scrollContainer: {
+        flexGrow: 1,
+    },
     container: { flex: 1, padding: 20 },
     loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     loadingText: { marginTop: 10, fontSize: 16 },
