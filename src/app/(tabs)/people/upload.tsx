@@ -50,8 +50,6 @@ export default function Upload() {
                 type: selectedFile.mimeType || "application/octet-stream",
             } as any);
 
-            console.log("Enviando para o backend:", formData);
-
             const response = await api.post("/people/import", formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
@@ -59,7 +57,6 @@ export default function Upload() {
             });
 
             Alert.alert("Sucesso", `Arquivo enviado com sucesso! ${response.data.message}`);
-            console.log("Resposta do servidor:", response.data);
             setSelectedFile(null); // 🔥 Limpa o arquivo após envio bem-sucedido
         } catch (error: any) {
             console.error("Erro ao enviar o arquivo:", error);

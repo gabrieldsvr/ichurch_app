@@ -20,7 +20,6 @@ export default function EditEventScreen() {
 
     const fetchEventDetails = async () => {
         try {
-            console.log(eventId)
             const response = await api.get(`/community/events/${eventId}`);
             setEventName(response.data.name);
             setEventDate(new Date(response.data.event_date));

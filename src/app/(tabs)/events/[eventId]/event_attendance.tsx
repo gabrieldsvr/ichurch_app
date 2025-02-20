@@ -2,10 +2,10 @@ import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, FlatList, StyleSheet, View, Modal } from "react-native";
 import { Button, Card, Checkbox, Divider, Text, TextInput, IconButton, useTheme } from "react-native-paper";
 import { useLocalSearchParams, useNavigation } from "expo-router";
-import { api } from "@/src/api/peopleService";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Animated, { FadeIn } from "react-native-reanimated";
 import {Picker} from "@react-native-picker/picker";
+import api from "@/src/api/api";
 
 interface Person {
     id: string;
@@ -89,7 +89,7 @@ export default function EventAttendanceScreen() {
             const toUnmark = pendingChanges.filter(change => !change.present).map(change => change.id);
 
             if (toMark.length > 0) {
-                await api.post(`/attendance/mark-multiple`, {
+                await api.post(`/community/attendance/mark-multiple`, {
                     event_id: eventId,
                     person_ids: toMark,
                 });
@@ -97,7 +97,7 @@ export default function EventAttendanceScreen() {
 
             if (toUnmark.length > 0) {
                 for (const personId of toUnmark) {
-                    await api.post(`/attendance/toggle`, {
+                    await api.post(`/community/attendance/toggle`, {
                         event_id: eventId,
                         person_id: personId,
                     });

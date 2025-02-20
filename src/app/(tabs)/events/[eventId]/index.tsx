@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import {Button, Text, Card, Divider, useTheme} from 'react-native-paper';
 import { router, useLocalSearchParams } from 'expo-router';
-import { api } from '@/src/api/peopleService';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import api from "@/src/api/api";
 
 interface Event {
     id: string;
@@ -37,7 +37,7 @@ export default function EventDetailsScreen() {
 
     const fetchEventDetails = async () => {
         try {
-            const response = await api.get(`/reports/event-presence/${eventId}`);
+            const response = await api.get(`/community/reports/event-presence/${eventId}`);
             setEvent(response.data.event);
         } catch (error) {
             console.error('Erro ao buscar detalhes do evento:', error);
@@ -48,7 +48,7 @@ export default function EventDetailsScreen() {
 
     const fetchEventStats = async () => {
         try {
-            const response = await api.get(`/reports/event-stats/${eventId}`);
+            const response = await api.get(`/community/reports/event-stats/${eventId}`);
             setStats(response.data);
         } catch (error) {
             console.error('Erro ao buscar estatísticas do evento:', error);

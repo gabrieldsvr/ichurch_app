@@ -56,7 +56,6 @@ export default function PeopleEditScreen() {
     const fetchUser = async () => {
         try {
             const response = await api.get(`community/people/${id}`);
-            console.log(response)
             const userData = response.data;
 
             setValue('name', userData.name);

@@ -78,7 +78,6 @@ export default function EventsScreen() {
                     style: "destructive",
                     onPress: async () => {
                         try {
-                            console.log(eventId)
                             await api.delete(`/community/events/${eventId}`);
                             Alert.alert("Sucesso", "Evento excluído com sucesso.");
                             fetchEvents();
