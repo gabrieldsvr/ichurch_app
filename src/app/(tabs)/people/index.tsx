@@ -107,7 +107,7 @@ export default function PeopleScreen() {
 
     const handleEdit = (id: string) => {
         router.push({
-            pathname: "/people/edit",
+            pathname: "/people/upsert",
             params: { id },
         });
     };
@@ -227,7 +227,7 @@ export default function PeopleScreen() {
                 icon="plus"
                 color={theme.colors.onPrimary}
                 style={[styles.fab, { backgroundColor: theme.colors.primary }]}
-                onPress={() => router.push('/people/insert')}
+                onPress={() => router.push('/people/upsert')}
             />
             <Modal visible={showFilterModal} transparent animationType="slide">
                 <View style={styles.modalContainer}>

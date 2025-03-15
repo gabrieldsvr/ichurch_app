@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Alert, FlatList, Modal, StyleSheet, View } from "react-native";
-import { Button, Card, Checkbox, Divider, IconButton, Text, TextInput, useTheme } from "react-native-paper";
+import {Avatar, Button, Card, Checkbox, Divider, IconButton, Text, TextInput, useTheme} from "react-native-paper";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Animated, { FadeIn } from "react-native-reanimated";
@@ -12,6 +12,7 @@ interface Person {
     name: string;
     type: string;
     present: boolean;
+    photo?: string;
 }
 
 export default function EventAttendanceScreen() {
@@ -179,11 +180,11 @@ export default function EventAttendanceScreen() {
                     >
                         <Card.Content style={styles.cardContent}>
                             <View style={styles.personInfo}>
-                                <MaterialCommunityIcons
-                                    name={item.present ? "account-check" : "account"}
-                                    size={24}
-                                    color={item.present ? theme.colors.primary : theme.colors.onSurface}
-                                />
+                                {item.photo ? (
+                                    <Avatar.Image size={40} style={styles.avatar} source={{ uri: `https://ichurch-storage.s3.us-east-1.amazonaws.com/${item.photo}` }} />
+                                ) : (
+                                    <Avatar.Icon size={40} icon="account" style={[styles.avatarIcon, { backgroundColor: theme.colors.surfaceVariant }]} />
+                                )}
                                 <Text style={[styles.personText, { color: theme.colors.onSurface }]}>
                                     {item.name} ({translateType(item.type)})
                                 </Text>
@@ -263,6 +264,8 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         marginBottom: 15
     },
+    avatar: { marginRight: 10 },
+    avatarIcon: { marginRight: 10 },
     container: { flex: 1, padding: 20 },
     card: { marginBottom: 10, padding: 10, elevation: 3, borderRadius: 8 },
     cardContent: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },

@@ -1,15 +1,16 @@
-import React, {useState} from 'react';
-import {Image, ScrollView, StyleSheet, View} from 'react-native';
-import {Button, Text, TextInput} from 'react-native-paper';
+import React, {useEffect, useState} from 'react';
+import {Alert, Image, ScrollView, StyleSheet, View} from 'react-native';
+import {Button, Text, TextInput,Avatar} from 'react-native-paper';
 import {Picker} from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {Controller, useForm} from 'react-hook-form';
 import {yupResolver} from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import {createUser} from '@/src/api/peopleService';
-import {router} from 'expo-router';
+import {createUser, updateUser} from '@/src/api/peopleService';
+import {router, useLocalSearchParams} from 'expo-router';
 import {useAppTheme} from '@/src/contexts/ThemeProvider';
 import * as ImagePicker from 'expo-image-picker';
+import api from "@/src/api/api";
 
 const schema = yup.object({
     name: yup.string().required('Nome é obrigatório'),
@@ -45,23 +46,59 @@ export default function PeopleInsertScreen() {
             parentPhone: '',
         },
     });
-    const [imageUri , setImageUri] = useState<string | null>(null);
+    const {id} = useLocalSearchParams();
+    const [imageUri, setImageUri] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const [showDatePicker, setShowDatePicker] = useState(false);
+    const [userData, setUserData] = useState<any>(null); // 🔥 Estado para armazenar os dados do usuário
+
     const birth_date = watch('birth_date');
     const birth_dateObj = new Date(birth_date);
-    const isMinor = new Date().getFullYear() - birth_dateObj.getFullYear() < 18;
+    // const isMinor = new Date().getFullYear() - birth_dateObj.getFullYear() < 18;
+
+    useEffect(() => {
+        if (id) {
+            fetchUser();
+        }
+    }, [id]);
+
+    const fetchUser = async () => {
+        try {
+            setIsLoading(true)
+            const response = await api.get(`community/people/${id}`);
+            const data = response.data;
+            setUserData(data);
+            setValue('name', data.name);
+            setValue('phone', data.phone);
+            // setValue('instagram', userData.instagram || '');
+            setValue('birth_date', data.birth_date);
+            setValue('type', data.type);
+            // setValue('parentName', userData.parentName || '');
+            // setValue('parentPhone', userData.parentPhone || '');
+
+        } catch (error) {
+            console.error('Erro ao buscar usuário:', error);
+            Alert.alert('Erro', 'Falha ao carregar os dados do usuário.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const onSubmit = async (data: FormData) => {
         try {
+            if (isLoading) return;
+            console.log(isLoading)
+
+            setIsLoading(true);
             const formData = new FormData();
             const sanitizedData: Record<string, string> = {
                 name: data.name || "",
                 phone: data.phone || "",
-                instagram: data.instagram || "",
+                // instagram: data.instagram || "",
                 birth_date: data.birth_date || "",
                 type: data.type || "",
-                parentName: data.parentName || "",
-                parentPhone: data.parentPhone || "",
+                // parentName: data.parentName || "",
+                // parentPhone: data.parentPhone || "",
             };
 
             Object.entries(sanitizedData).forEach(([key, value]) => {
@@ -76,15 +113,21 @@ export default function PeopleInsertScreen() {
                 } as any);
             }
 
-            console.log(imageUri)
-            await createUser(formData);
+            console.log(formData)
+            if (id) {
+                await updateUser(id as string, formData);
+            } else {
+                await createUser(formData);
+            }
+
             router.replace('/people');
         } catch (error) {
-            console.error('Erro ao cadastrar usuário:', error);
+            console.error('Erro ao manipular usuário:', error);
+            setIsLoading(false);
         }
     };
     const pickImage = async () => {
-        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        const {status} = await ImagePicker.requestCameraPermissionsAsync();
         if (status !== 'granted') {
             alert('Precisamos de permissão para acessar a câmera e galeria.');
             return;
@@ -108,11 +151,17 @@ export default function PeopleInsertScreen() {
                 <Button mode="outlined" onPress={pickImage}
                         style={[styles.button, {backgroundColor: theme.colors.surface}]}
                         textColor={theme.colors.onSurface}>
-                    Tirar Foto
+                    {imageUri || userData?.photo ? "Alterar Foto" : "Tirar Foto"}
                 </Button>
 
-                {/* Exibir Imagem Capturada */}
-                {imageUri  && <Image source={{uri: imageUri }} style={styles.imagePreview}/>}
+                {imageUri ? (
+                    <Image source={{uri: imageUri}} style={styles.imagePreview}/>
+                ) : userData?.photo ? (
+                    <Image source={{uri: `https://ichurch-storage.s3.us-east-1.amazonaws.com/${userData.photo}`}}
+                           style={styles.imagePreview}/>
+                ) : (
+                    <Avatar.Icon size={120} icon="account" style={styles.imagePreview}/>
+                )}
 
                 {/* Nome */}
                 <Controller
@@ -153,19 +202,19 @@ export default function PeopleInsertScreen() {
                     <Text style={[styles.errorText, {color: theme.colors.error}]}>{errors.phone.message}</Text>}
 
                 {/* Instagram */}
-                <Controller
-                    control={control}
-                    name="instagram"
-                    render={({field: {onChange, value}}) => (
-                        <TextInput
-                            label="Instagram"
-                            value={value}
-                            onChangeText={onChange}
-                            mode="outlined"
-                            style={[styles.input, {backgroundColor: theme.colors.surface}]}
-                        />
-                    )}
-                />
+                {/*<Controller*/}
+                {/*    control={control}*/}
+                {/*    name="instagram"*/}
+                {/*    render={({field: {onChange, value}}) => (*/}
+                {/*        <TextInput*/}
+                {/*            label="Instagram"*/}
+                {/*            value={value}*/}
+                {/*            onChangeText={onChange}*/}
+                {/*            mode="outlined"*/}
+                {/*            style={[styles.input, {backgroundColor: theme.colors.surface}]}*/}
+                {/*        />*/}
+                {/*    )}*/}
+                {/*/>*/}
 
                 {/* Data de Nascimento */}
                 <Button
@@ -183,7 +232,11 @@ export default function PeopleInsertScreen() {
                         display="default"
                         onChange={(event, selectedDate) => {
                             setShowDatePicker(false);
-                            if (selectedDate) setValue('birth_date', selectedDate.toISOString());
+                            if (selectedDate) {
+                                // 🔥 Converte para YYYY-MM-DD no fuso horário local antes de salvar
+                                const localDate = selectedDate.toISOString().split("T")[0];
+                                setValue("birth_date", localDate);
+                            }
                         }}
                     />
                 )}
@@ -191,44 +244,44 @@ export default function PeopleInsertScreen() {
                     <Text style={[styles.errorText, {color: theme.colors.error}]}>{errors.birth_date.message}</Text>}
 
                 {/* Responsável (Menores de Idade) */}
-                {isMinor && (
-                    <>
-                        <Controller
-                            control={control}
-                            name="parentName"
-                            render={({field: {onChange, value}}) => (
-                                <TextInput
-                                    label="Nome do Responsável"
-                                    value={value}
-                                    onChangeText={onChange}
-                                    mode="outlined"
-                                    style={[styles.input, {backgroundColor: theme.colors.surface}]}
-                                    error={!!errors.parentName}
-                                />
-                            )}
-                        />
-                        {errors.parentName && <Text
-                            style={[styles.errorText, {color: theme.colors.error}]}>{errors.parentName.message}</Text>}
+                {/*{isMinor && (*/}
+                {/*    <>*/}
+                {/*        <Controller*/}
+                {/*            control={control}*/}
+                {/*            name="parentName"*/}
+                {/*            render={({field: {onChange, value}}) => (*/}
+                {/*                <TextInput*/}
+                {/*                    label="Nome do Responsável"*/}
+                {/*                    value={value}*/}
+                {/*                    onChangeText={onChange}*/}
+                {/*                    mode="outlined"*/}
+                {/*                    style={[styles.input, {backgroundColor: theme.colors.surface}]}*/}
+                {/*                    error={!!errors.parentName}*/}
+                {/*                />*/}
+                {/*            )}*/}
+                {/*        />*/}
+                {/*        {errors.parentName && <Text*/}
+                {/*            style={[styles.errorText, {color: theme.colors.error}]}>{errors.parentName.message}</Text>}*/}
 
-                        <Controller
-                            control={control}
-                            name="parentPhone"
-                            render={({field: {onChange, value}}) => (
-                                <TextInput
-                                    label="Telefone do Responsável"
-                                    value={value}
-                                    onChangeText={onChange}
-                                    mode="outlined"
-                                    keyboardType="phone-pad"
-                                    style={[styles.input, {backgroundColor: theme.colors.surface}]}
-                                    error={!!errors.parentPhone}
-                                />
-                            )}
-                        />
-                        {errors.parentPhone && <Text
-                            style={[styles.errorText, {color: theme.colors.error}]}>{errors.parentPhone.message}</Text>}
-                    </>
-                )}
+                {/*        <Controller*/}
+                {/*            control={control}*/}
+                {/*            name="parentPhone"*/}
+                {/*            render={({field: {onChange, value}}) => (*/}
+                {/*                <TextInput*/}
+                {/*                    label="Telefone do Responsável"*/}
+                {/*                    value={value}*/}
+                {/*                    onChangeText={onChange}*/}
+                {/*                    mode="outlined"*/}
+                {/*                    keyboardType="phone-pad"*/}
+                {/*                    style={[styles.input, {backgroundColor: theme.colors.surface}]}*/}
+                {/*                    error={!!errors.parentPhone}*/}
+                {/*                />*/}
+                {/*            )}*/}
+                {/*        />*/}
+                {/*        {errors.parentPhone && <Text*/}
+                {/*            style={[styles.errorText, {color: theme.colors.error}]}>{errors.parentPhone.message}</Text>}*/}
+                {/*    </>*/}
+                {/*)}*/}
 
                 {/* Tipo de Pessoa */}
                 <Text style={[styles.label, {color: theme.colors.onSurface}]}>Tipo de Pessoa:</Text>
@@ -257,10 +310,13 @@ export default function PeopleInsertScreen() {
                 {errors.type &&
                     <Text style={[styles.errorText, {color: theme.colors.error}]}>{errors.type.message}</Text>}
 
-                {/* Botão de Cadastro */}
-                <Button mode="contained" onPress={handleSubmit(onSubmit)}
-                        style={[styles.button, {backgroundColor: theme.colors.primary}]}>
-                    Cadastrar
+                <Button
+                    mode="contained"
+                    onPress={handleSubmit(onSubmit)}
+                    disabled={isLoading}
+                    style={[styles.button, {backgroundColor: theme.colors.primary}]}
+                >
+                    {isLoading ? "Salvando..." : id ? "Salvar Alterações" : "Cadastrar"}
                 </Button>
             </View>
         </ScrollView>

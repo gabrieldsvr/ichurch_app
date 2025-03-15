@@ -9,7 +9,7 @@ import {
     TouchableOpacity,
     KeyboardAvoidingView
 } from "react-native";
-import { Button, Card, Text, useTheme } from "react-native-paper";
+import {Avatar, Button, Card, Text, useTheme} from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import api from "@/src/api/api";
 import Animated, { FadeIn } from "react-native-reanimated";
@@ -20,6 +20,7 @@ interface Person {
     name: string;
     phone: string;
     present: boolean;
+    photo?: string;
 }
 
 export default function EventSelfCheckInScreen() {
@@ -138,13 +139,13 @@ export default function EventSelfCheckInScreen() {
                             >
                                 <Card.Content style={styles.cardContent}>
                                     <View style={styles.personInfo}>
-                                        <MaterialCommunityIcons
-                                            name={item.present ? "check-circle" : "account"}
-                                            size={28}
-                                            color={item.present ? theme.colors.primary : theme.colors.onPrimary}
-                                        />
+                                        {item.photo ? (
+                                            <Avatar.Image size={60} style={styles.avatar} source={{ uri: `https://ichurch-storage.s3.us-east-1.amazonaws.com/${item.photo}` }} />
+                                        ) : (
+                                            <Avatar.Icon size={60} icon="account" style={[styles.avatarIcon, { backgroundColor: theme.colors.surfaceVariant }]} />
+                                        )}
                                         <Text style={styles.personText}>
-                                            {item.name} - {item.phone}
+                                            {item.name}
                                         </Text>
                                     </View>
                                 </Card.Content>
@@ -194,6 +195,9 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
     },
+
+    avatar: { marginRight: 10 },
+    avatarIcon: { marginRight: 10 },
     personText: {
         fontSize: 16,
         marginLeft: 10,
