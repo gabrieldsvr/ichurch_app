@@ -1,17 +1,11 @@
 import api from "@/src/api/api";
 
-
-export const createUser = async (userData: {
-    name: string;
-    phone: string;
-    instagram?: string;
-    birth_date: string;
-    type: 'visitor' | 'regular_attendee' | 'member';
-    parentName?: string;
-    parentPhone?: string;
-}) => {
+export const createUser = async (userData: FormData) => {
     try {
-        const response = await api.post('/community/people', userData);
+        console.log(userData);
+        const response = await api.post('/community/people', userData, {
+            headers: { "Content-Type": "multipart/form-data" }
+        });
         return response.data;
     } catch (error) {
         console.error('Erro ao criar usuário:', error);

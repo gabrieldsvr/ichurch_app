@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {Image, ScrollView, StyleSheet, View} from 'react-native';
 import {Button, Text, TextInput} from 'react-native-paper';
 import {Picker} from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -9,6 +9,7 @@ import * as yup from 'yup';
 import {createUser} from '@/src/api/peopleService';
 import {router} from 'expo-router';
 import {useAppTheme} from '@/src/contexts/ThemeProvider';
+import * as ImagePicker from 'expo-image-picker';
 
 const schema = yup.object({
     name: yup.string().required('Nome é obrigatório'),
@@ -44,7 +45,7 @@ export default function PeopleInsertScreen() {
             parentPhone: '',
         },
     });
-
+    const [imageUri , setImageUri] = useState<string | null>(null);
     const [showDatePicker, setShowDatePicker] = useState(false);
     const birth_date = watch('birth_date');
     const birth_dateObj = new Date(birth_date);
@@ -52,162 +53,217 @@ export default function PeopleInsertScreen() {
 
     const onSubmit = async (data: FormData) => {
         try {
-            const formattedData = {...data, birth_date: new Date(data.birth_date).toISOString()};
-            await createUser(formattedData);
+            const formData = new FormData();
+            const sanitizedData: Record<string, string> = {
+                name: data.name || "",
+                phone: data.phone || "",
+                instagram: data.instagram || "",
+                birth_date: data.birth_date || "",
+                type: data.type || "",
+                parentName: data.parentName || "",
+                parentPhone: data.parentPhone || "",
+            };
+
+            Object.entries(sanitizedData).forEach(([key, value]) => {
+                formData.append(key, value);
+            });
+
+            if (imageUri) {
+                formData.append("photo", {
+                    uri: imageUri,
+                    type: "image/jpeg",
+                    name: `profile-${Date.now()}.jpg`
+                } as any);
+            }
+
+            console.log(imageUri)
+            await createUser(formData);
             router.replace('/people');
         } catch (error) {
             console.error('Erro ao cadastrar usuário:', error);
         }
     };
+    const pickImage = async () => {
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== 'granted') {
+            alert('Precisamos de permissão para acessar a câmera e galeria.');
+            return;
+        }
+
+        let result = await ImagePicker.launchCameraAsync({
+            mediaTypes: ['images'], // 🔥 Corrigido: Usa MediaTypeOptions.Images corretamente
+            allowsEditing: true,
+            quality: 0.6,
+        });
+
+        if (!result.canceled && result.assets.length > 0) {
+            setImageUri(result.assets[0].uri); // Atualiza a URI da imagem no estado
+        }
+    };
 
     return (
-        <View style={[styles.container, {backgroundColor: theme.colors.background}]}>
-            {/* Nome */}
-            <Controller
-                control={control}
-                name="name"
-                render={({field: {onChange, value}}) => (
-                    <TextInput
-                        label="Nome"
-                        value={value}
-                        onChangeText={onChange}
-                        mode="outlined"
-                        style={[styles.input, {backgroundColor: theme.colors.surface}]}
-                        error={!!errors.name}
-                        placeholderTextColor={theme.colors.onSurfaceVariant}
-                    />
-                )}
-            />
-            {errors.name && <Text style={[styles.errorText, {color: theme.colors.error}]}>{errors.name.message}</Text>}
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+            <View style={[styles.container, {backgroundColor: theme.colors.background}]}>
+                {/* Captura de Foto */}
+                <Button mode="outlined" onPress={pickImage}
+                        style={[styles.button, {backgroundColor: theme.colors.surface}]}
+                        textColor={theme.colors.onSurface}>
+                    Tirar Foto
+                </Button>
 
-            {/* Telefone */}
-            <Controller
-                control={control}
-                name="phone"
-                render={({field: {onChange, value}}) => (
-                    <TextInput
-                        label="Telefone"
-                        value={value}
-                        onChangeText={onChange}
-                        mode="outlined"
-                        keyboardType="phone-pad"
-                        style={[styles.input, {backgroundColor: theme.colors.surface}]}
-                        error={!!errors.phone}
-                    />
-                )}
-            />
-            {errors.phone &&
-                <Text style={[styles.errorText, {color: theme.colors.error}]}>{errors.phone.message}</Text>}
+                {/* Exibir Imagem Capturada */}
+                {imageUri  && <Image source={{uri: imageUri }} style={styles.imagePreview}/>}
 
-            {/* Instagram */}
-            <Controller
-                control={control}
-                name="instagram"
-                render={({field: {onChange, value}}) => (
-                    <TextInput
-                        label="Instagram"
-                        value={value}
-                        onChangeText={onChange}
-                        mode="outlined"
-                        style={[styles.input, {backgroundColor: theme.colors.surface}]}
-                    />
-                )}
-            />
-
-            {/* Data de Nascimento */}
-            <Button
-                mode="outlined"
-                onPress={() => setShowDatePicker(true)}
-                style={[styles.button, {backgroundColor: theme.colors.surface}]}
-                textColor={theme.colors.onSurface}
-            >
-                {birth_date ? `Nascimento: ${birth_dateObj.toLocaleDateString()}` : 'Selecionar Data'}
-            </Button>
-            {showDatePicker && (
-                <DateTimePicker
-                    value={birth_dateObj}
-                    mode="date"
-                    display="default"
-                    onChange={(event, selectedDate) => {
-                        setShowDatePicker(false);
-                        if (selectedDate) setValue('birth_date', selectedDate.toISOString());
-                    }}
+                {/* Nome */}
+                <Controller
+                    control={control}
+                    name="name"
+                    render={({field: {onChange, value}}) => (
+                        <TextInput
+                            label="Nome"
+                            value={value}
+                            onChangeText={onChange}
+                            mode="outlined"
+                            style={[styles.input, {backgroundColor: theme.colors.surface}]}
+                            error={!!errors.name}
+                            placeholderTextColor={theme.colors.onSurfaceVariant}
+                        />
+                    )}
                 />
-            )}
-            {errors.birth_date &&
-                <Text style={[styles.errorText, {color: theme.colors.error}]}>{errors.birth_date.message}</Text>}
+                {errors.name &&
+                    <Text style={[styles.errorText, {color: theme.colors.error}]}>{errors.name.message}</Text>}
 
-            {/* Responsável (Menores de Idade) */}
-            {isMinor && (
-                <>
-                    <Controller
-                        control={control}
-                        name="parentName"
-                        render={({field: {onChange, value}}) => (
-                            <TextInput
-                                label="Nome do Responsável"
-                                value={value}
-                                onChangeText={onChange}
-                                mode="outlined"
-                                style={[styles.input, {backgroundColor: theme.colors.surface}]}
-                                error={!!errors.parentName}
-                            />
-                        )}
+                {/* Telefone */}
+                <Controller
+                    control={control}
+                    name="phone"
+                    render={({field: {onChange, value}}) => (
+                        <TextInput
+                            label="Telefone"
+                            value={value}
+                            onChangeText={onChange}
+                            mode="outlined"
+                            keyboardType="phone-pad"
+                            style={[styles.input, {backgroundColor: theme.colors.surface}]}
+                            error={!!errors.phone}
+                        />
+                    )}
+                />
+                {errors.phone &&
+                    <Text style={[styles.errorText, {color: theme.colors.error}]}>{errors.phone.message}</Text>}
+
+                {/* Instagram */}
+                <Controller
+                    control={control}
+                    name="instagram"
+                    render={({field: {onChange, value}}) => (
+                        <TextInput
+                            label="Instagram"
+                            value={value}
+                            onChangeText={onChange}
+                            mode="outlined"
+                            style={[styles.input, {backgroundColor: theme.colors.surface}]}
+                        />
+                    )}
+                />
+
+                {/* Data de Nascimento */}
+                <Button
+                    mode="outlined"
+                    onPress={() => setShowDatePicker(true)}
+                    style={[styles.button, {backgroundColor: theme.colors.surface}]}
+                    textColor={theme.colors.onSurface}
+                >
+                    {birth_date ? `Nascimento: ${birth_dateObj.toLocaleDateString()}` : 'Selecionar Data'}
+                </Button>
+                {showDatePicker && (
+                    <DateTimePicker
+                        value={birth_dateObj}
+                        mode="date"
+                        display="default"
+                        onChange={(event, selectedDate) => {
+                            setShowDatePicker(false);
+                            if (selectedDate) setValue('birth_date', selectedDate.toISOString());
+                        }}
                     />
-                    {errors.parentName && <Text
-                        style={[styles.errorText, {color: theme.colors.error}]}>{errors.parentName.message}</Text>}
-
-                    <Controller
-                        control={control}
-                        name="parentPhone"
-                        render={({field: {onChange, value}}) => (
-                            <TextInput
-                                label="Telefone do Responsável"
-                                value={value}
-                                onChangeText={onChange}
-                                mode="outlined"
-                                keyboardType="phone-pad"
-                                style={[styles.input, {backgroundColor: theme.colors.surface}]}
-                                error={!!errors.parentPhone}
-                            />
-                        )}
-                    />
-                    {errors.parentPhone && <Text
-                        style={[styles.errorText, {color: theme.colors.error}]}>{errors.parentPhone.message}</Text>}
-                </>
-            )}
-
-            {/* Tipo de Pessoa */}
-            <Text style={[styles.label, {color: theme.colors.onSurface}]}>Tipo de Pessoa:</Text>
-            <Controller
-                control={control}
-                name="type"
-                render={({ field: { onChange, value } }) => (
-                    <View style={[styles.pickerContainer, { backgroundColor: theme.colors.surface }]}>
-                        <Picker
-                            selectedValue={value}
-                            onValueChange={onChange}
-                            mode="dropdown" // 🔥 Evita o modal branco no Android
-                            style={styles.picker}
-                            dropdownIconColor={theme.colors.onSurface} // 🔥 Ajusta a cor do ícone da seta
-                        >
-                            <Picker.Item label="Visitante" value="visitor" style={{ color: theme.colors.onSurface }} />
-                            <Picker.Item label="Frequentador" value="regular_attendee" style={{ color: theme.colors.onSurface }} />
-                            <Picker.Item label="Membro" value="member" style={{ color: theme.colors.onSurface }} />
-                        </Picker>
-                    </View>
                 )}
-            />
+                {errors.birth_date &&
+                    <Text style={[styles.errorText, {color: theme.colors.error}]}>{errors.birth_date.message}</Text>}
+
+                {/* Responsável (Menores de Idade) */}
+                {isMinor && (
+                    <>
+                        <Controller
+                            control={control}
+                            name="parentName"
+                            render={({field: {onChange, value}}) => (
+                                <TextInput
+                                    label="Nome do Responsável"
+                                    value={value}
+                                    onChangeText={onChange}
+                                    mode="outlined"
+                                    style={[styles.input, {backgroundColor: theme.colors.surface}]}
+                                    error={!!errors.parentName}
+                                />
+                            )}
+                        />
+                        {errors.parentName && <Text
+                            style={[styles.errorText, {color: theme.colors.error}]}>{errors.parentName.message}</Text>}
+
+                        <Controller
+                            control={control}
+                            name="parentPhone"
+                            render={({field: {onChange, value}}) => (
+                                <TextInput
+                                    label="Telefone do Responsável"
+                                    value={value}
+                                    onChangeText={onChange}
+                                    mode="outlined"
+                                    keyboardType="phone-pad"
+                                    style={[styles.input, {backgroundColor: theme.colors.surface}]}
+                                    error={!!errors.parentPhone}
+                                />
+                            )}
+                        />
+                        {errors.parentPhone && <Text
+                            style={[styles.errorText, {color: theme.colors.error}]}>{errors.parentPhone.message}</Text>}
+                    </>
+                )}
+
+                {/* Tipo de Pessoa */}
+                <Text style={[styles.label, {color: theme.colors.onSurface}]}>Tipo de Pessoa:</Text>
+                <Controller
+                    control={control}
+                    name="type"
+                    render={({field: {onChange, value}}) => (
+                        <View style={[styles.pickerContainer, {backgroundColor: theme.colors.surface}]}>
+                            <Picker
+                                selectedValue={value}
+                                onValueChange={onChange}
+                                mode="dropdown" // 🔥 Evita o modal branco no Android
+                                style={styles.picker}
+                                dropdownIconColor={theme.colors.onSurface} // 🔥 Ajusta a cor do ícone da seta
+                            >
+                                <Picker.Item label="Visitante" value="visitor" style={{color: theme.colors.onSurface}}/>
+                                <Picker.Item label="Frequentador" value="regular_attendee"
+                                             style={{color: theme.colors.onSurface}}/>
+                                <Picker.Item label="Membro" value="member" style={{color: theme.colors.onSurface}}/>
+                            </Picker>
+                        </View>
+                    )}
+                />
 
 
-            {errors.type && <Text style={[styles.errorText, {color: theme.colors.error}]}>{errors.type.message}</Text>}
+                {errors.type &&
+                    <Text style={[styles.errorText, {color: theme.colors.error}]}>{errors.type.message}</Text>}
 
-            {/* Botão de Cadastro */}
-            <Button mode="contained" onPress={handleSubmit(onSubmit)}
-                    style={[styles.button, {backgroundColor: theme.colors.primary}]}>
-                Cadastrar
-            </Button>
-        </View>
+                {/* Botão de Cadastro */}
+                <Button mode="contained" onPress={handleSubmit(onSubmit)}
+                        style={[styles.button, {backgroundColor: theme.colors.primary}]}>
+                    Cadastrar
+                </Button>
+            </View>
+        </ScrollView>
     );
 }
 
@@ -223,6 +279,16 @@ const styles = StyleSheet.create({
     },
     picker: {
         color: "#BFC6DC", // 🔥 Define a cor do texto no Picker
+    },
+    imagePreview: {
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        alignSelf: 'center',
+        marginVertical: 10,
+    },
+    scrollContainer: {
+        flexGrow: 1,
     },
     errorText: {fontSize: 12, marginBottom: 5},
 });

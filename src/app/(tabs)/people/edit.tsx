@@ -8,6 +8,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { router, useLocalSearchParams } from 'expo-router';
 import api from "@/src/api/api";
+import {useAppTheme} from "@/src/contexts/ThemeProvider";
 
 const schema = yup.object({
     name: yup.string().required('Nome é obrigatório'),
@@ -30,6 +31,7 @@ interface FormData {
 }
 
 export default function PeopleEditScreen() {
+    const {theme} = useAppTheme();
     const { id } = useLocalSearchParams();
     const { control, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>({
         resolver: yupResolver(schema),
@@ -102,7 +104,7 @@ export default function PeopleEditScreen() {
     }
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, {backgroundColor: theme.colors.background}]}>
 
             {/* Nome */}
             <Controller

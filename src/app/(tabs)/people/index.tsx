@@ -135,6 +135,35 @@ export default function PeopleScreen() {
         }
     };
 
+    const createUserForPerson = async (person: PeopleDTO) => {
+        try {
+            const nameParts = person.name.trim().split(" ");
+            if (nameParts.length < 2) {
+                Alert.alert("Erro", "O nome da pessoa deve ter pelo menos um sobrenome.");
+                return;
+            }
+
+            const firstName = nameParts[0].toLowerCase();
+            const lastName = nameParts[nameParts.length - 1].toLowerCase();
+            const email = `${firstName}.${lastName}@email.com`;
+
+            const userData = {
+                email,
+                password: "senha123",
+                person_id: person.id,
+                role: "user",
+            };
+
+            const response = await api.post("/sca/auth/register", userData);
+
+            Alert.alert("Sucesso", `Usuário criado com sucesso!\nEmail: ${email}\nSenha: senha123`);
+        } catch (error: any) {
+            console.error("Erro ao criar usuário:", error);
+            Alert.alert("Erro", "Falha ao criar usuário.");
+        }
+    };
+
+
     return (
         <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
             {showSearch && (
@@ -162,8 +191,8 @@ export default function PeopleScreen() {
                 renderItem={({ item }) => (
                     <TouchableOpacity style={styles.listItem}>
                         {/* Avatar */}
-                        {item.imageUrl ? (
-                            <Avatar.Image size={40} style={styles.avatar} source={{ uri: item.imageUrl }} />
+                        {item.photo ? (
+                            <Avatar.Image size={40} style={styles.avatar} source={{ uri: `https://ichurch-storage.s3.us-east-1.amazonaws.com/${item.photo}` }} />
                         ) : (
                             <Avatar.Icon size={40} icon="account" style={[styles.avatarIcon, { backgroundColor: theme.colors.surfaceVariant }]} />
                         )}

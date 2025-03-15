@@ -8,5 +8,5 @@ interface PeopleDTO {
     type: 'visitor' | 'regular_attendee' | 'member';
     parentName?: string;
     parentPhone?: string;
-    imageUrl?: string;
+    photo?: string;
 }

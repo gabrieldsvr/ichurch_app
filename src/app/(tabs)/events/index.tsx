@@ -41,13 +41,19 @@ export default function EventsScreen() {
         try {
             setRefreshing(true);
             const response = await api.get("/community/events");
-            setEvents(response.data);
+
+            const sortedEvents = response.data.sort(
+                (a: EventDTO, b: EventDTO) =>  new Date(b.event_date).getTime() - new Date(a.event_date).getTime()
+            );
+
+            setEvents(sortedEvents);
         } catch (error) {
             console.error("Erro ao buscar eventos:", error);
         } finally {
             setRefreshing(false);
         }
     };
+
 
     const toggleMenu = (eventId: string) => {
         setVisibleMenus((prev) => ({
