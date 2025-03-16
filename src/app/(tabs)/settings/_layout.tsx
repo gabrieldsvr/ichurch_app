@@ -14,6 +14,7 @@ export default function SettingsLayout() {
         >
             <Stack.Screen name="index" options={{ title: "Configurações" }} />
             <Stack.Screen name="notifications" options={{ title: "Notificações" }} />
+            <Stack.Screen name="FaceRecognitionScreen" options={{ title: "FaceRecognitionScreen" }} />
         </Stack>
     );
 }
