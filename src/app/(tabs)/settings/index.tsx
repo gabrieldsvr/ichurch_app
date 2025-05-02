@@ -102,14 +102,6 @@ export default function SettingsScreen() {
 
             {/* 🚧 Funcionalidades Futuras */}
             <List.Section title="Em breve...">
-                <Button
-                    icon="face-recognition"
-                    mode="contained"
-                    onPress={() => router.push('/settings/FaceRecognitionScreen')}
-                    style={styles.button}
-                    textColor={theme.colors.onPrimary}
-                >Reconhecimento facial...
-                </Button>
                 <List.Item
                     title="Gerenciar Usuários"
                     description="Aguarde futuras atualizações"
