@@ -9,6 +9,7 @@ import { router } from "expo-router";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "@/src/api/api";
+import {logToDiscord} from "@/src/api/logService";
 
 // 📌 Esquema de Validação com Yup
 const schema = yup.object({
@@ -31,6 +32,7 @@ export default function LoginScreen() {
     const [loading, setLoading] = useState(false);
     const theme = useAppTheme().theme;
 
+
     const onSubmit = async (data: LoginForm) => {
         try {
             setLoading(true);
@@ -40,9 +42,15 @@ export default function LoginScreen() {
 
             Alert.alert("Sucesso", "Login realizado com sucesso!");
             router.replace("/(tabs)");
-
-        } catch (error) {
+        } catch (error: any) {
             console.error("Erro ao fazer login:", error);
+
+            // Enviar log para o Discord
+            await logToDiscord(
+                `🚫 Falha no login\n**Email:** ${data.email}\n**Mensagem:** ${error.message || "Erro desconhecido"}`,
+                "ERROR"
+            );
+
             Alert.alert("Erro", "Credenciais inválidas. Verifique seu email e senha.");
         } finally {
             setLoading(false);
