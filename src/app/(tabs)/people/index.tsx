@@ -6,7 +6,6 @@ import {getUsers} from '@/src/api/peopleService';
 import {useAppTheme} from "@/src/contexts/ThemeProvider";
 import {Picker} from "@react-native-picker/picker";
 import api from "@/src/api/api";
-
 export default function PeopleScreen() {
     const theme = useAppTheme().theme;
     const [people, setPeople] = useState<PeopleDTO[]>([]);

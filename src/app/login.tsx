@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import { View, StyleSheet, KeyboardAvoidingView, Platform, Alert } from "react-native";
 import { Button, Text, TextInput, useTheme } from "react-native-paper";
 import { Controller, useForm } from "react-hook-form";
@@ -33,10 +33,12 @@ export default function LoginScreen() {
     const theme = useAppTheme().theme;
 
 
+
     const onSubmit = async (data: LoginForm) => {
         try {
             setLoading(true);
-            const response = await api.post("/sca/auth/login", data);
+            // const response = await api.post("/sca/auth/login", data);
+            const response = await api.post("/sca/auth/login",{"email": "lideranca@pibfloripa.com.br", "password": "adm123"} );
             const token = response.data.token;
             await AsyncStorage.setItem("token", token);
 
@@ -56,6 +58,10 @@ export default function LoginScreen() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        onSubmit()
+    }, []);
 
     return (
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={[styles.container, { backgroundColor: theme.colors.background }]}>

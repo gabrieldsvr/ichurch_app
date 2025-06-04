@@ -68,6 +68,11 @@ export default function SettingsScreen() {
                     />
                 )}
             />
+                <List.Item
+                    title="Gerenciar Ministérios"
+                    onPress={() => router.push('/settings/ministery')}
+                    left={() => <List.Icon icon="account-group" />}
+                />
             <Divider style={styles.divider} />
 
             {/* 📅 Botão para Eventos */}
@@ -99,6 +104,7 @@ export default function SettingsScreen() {
             >
                 Importar Pessoas via Excel
             </Button>
+
 
             {/* 🚧 Funcionalidades Futuras */}
             <List.Section title="Em breve...">
