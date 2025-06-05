@@ -9,7 +9,7 @@ export const LightTheme: MD3Theme = {
         ...NavigationLightTheme.colors,
 
         /** 🔥 Cores principais */
-        primary: '#2B4678',          // Azul escuro (botões, elementos principais)
+        primary: '#4687ff',          // Azul escuro (botões, elementos principais)
         secondary: '#5A6273',        // Cinza escuro (cor padrão do texto)
         tertiary: '#8A8C95',         // Cinza médio (subtítulos, textos secundários)
 

@@ -3,10 +3,12 @@ import {Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Touchable
 import {Button, Text, TextInput, useTheme,} from "react-native-paper";
 import * as ImagePicker from "expo-image-picker";
 import {useRouter} from "expo-router";
-
+import i18n from "@/src/i18n";
+import {useTranslation} from "@/src/hook/useTranslation";
 export default function RegisterMemberScreen() {
     const theme = useTheme();
     const router = useRouter();
+    const { t } = useTranslation();
 
     const [fullName, setFullName] = useState("");
     const [birthDate, setBirthDate] = useState("");
@@ -51,13 +53,13 @@ export default function RegisterMemberScreen() {
                 {/* Header */}
                 <View style={styles.header}>
                     <Text style={[styles.title, {color: theme.colors.onBackground}]}>
-                        Inserir Novo Membro
+                        {t('insert_new_member')}
                     </Text>
                 </View>
 
                 {/* Form */}
                 <TextInput
-                    label="Nome Completo"
+                    label={t('full_name')}
                     value={fullName}
                     onChangeText={setFullName}
                     style={styles.input}
@@ -65,7 +67,7 @@ export default function RegisterMemberScreen() {
                 />
 
                 <TextInput
-                    label="Date of Birth"
+                    label={t("birth_date")}
                     placeholder="YYYY-MM-DD"
                     value={birthDate}
                     onChangeText={setBirthDate}
@@ -75,7 +77,7 @@ export default function RegisterMemberScreen() {
                 />
 
                 <TextInput
-                    label="Email"
+                    label={t("email")}
                     value={email}
                     onChangeText={setEmail}
                     style={styles.input}
@@ -85,7 +87,7 @@ export default function RegisterMemberScreen() {
                 />
 
                 <TextInput
-                    label="Telefone"
+                    label={t("phone")}
                     value={phone}
                     onChangeText={setPhone}
                     style={styles.input}
@@ -94,7 +96,7 @@ export default function RegisterMemberScreen() {
                 />
 
                 <TextInput
-                    label="Endereço"
+                    label={t("address")}
                     value={address}
                     onChangeText={setAddress}
                     style={styles.input}
@@ -105,13 +107,13 @@ export default function RegisterMemberScreen() {
                 {/* Profile Picture Upload */}
                 <View style={styles.uploadSection}>
                     <Text style={[styles.uploadLabel, {color: theme.colors.onBackground}]}>
-                        Profile Picture Upload
+                        {t('upload_profile_picture')}
                     </Text>
                     <TouchableOpacity onPress={pickImage} style={styles.uploadButton}>
                         {profileImage ? (
                             <Image source={{uri: profileImage}} style={styles.profileImage}/>
                         ) : (
-                            <Text style={{color: theme.colors.primary}}>Choose Photo</Text>
+                            <Text style={{color: theme.colors.primary}}>{t('choose_photo')}</Text>
                         )}
                     </TouchableOpacity>
                 </View>
@@ -123,7 +125,7 @@ export default function RegisterMemberScreen() {
             {/* Buttons fixados no rodapé */}
             <View style={[styles.buttonRow, {backgroundColor: theme.colors.background}]}>
                 <Button mode="contained" onPress={onSave} style={styles.saveButton}>
-                   Cadastrar
+                    {t('register')}
                 </Button>
             </View>
         </KeyboardAvoidingView>
@@ -173,8 +175,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
     },
     buttonRow: {
-        marginHorizontal: 24,
-        // paddingHorizontal: 24,
+        paddingHorizontal: 24,
         flexDirection: 'row',
         justifyContent: 'space-around',
         paddingVertical: 10,

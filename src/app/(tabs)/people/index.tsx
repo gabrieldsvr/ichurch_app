@@ -9,7 +9,7 @@ import {
     Text,
 } from "react-native";
 import { Button, IconButton, useTheme } from "react-native-paper";
-import {router} from "expo-router";
+import {router, useFocusEffect} from "expo-router";
 
 interface Person {
     id: string;
