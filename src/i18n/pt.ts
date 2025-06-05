@@ -35,10 +35,17 @@ export default {
     invalidEmail: 'Email inválido',
     loadingData: 'Carregando dados...',
     noData: 'Sem dados disponíveis',
-    full_name: 'Nome Completo',
+    full_name: 'Nome completo',
     birth_date: 'Data de Nascimento',
     upload_profile_picture: 'Carregar Foto de Perfil',
     choose_photo: 'Escolher Foto',
     register: 'Cadastrar',
     insert_new_member: 'Inserir Novo Membro',
+    change_photo: 'Alterar Foto',
+    take_photo: 'Tirar Foto',
+    visitor: 'Visitante',
+    regular_attendee: 'Frequentador',
+    member: 'Membro',
+    type_member: 'Tipo de Membro',
+
 };
