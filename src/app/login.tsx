@@ -37,8 +37,8 @@ export default function LoginScreen() {
     const onSubmit = async (data: LoginForm) => {
         try {
             setLoading(true);
-            const response = await api.post("/sca/auth/login", data);
-            // const response = await api.post("/sca/auth/login",{"email": "ichurch@gmail.com", "password": "12345678"} );
+            // const response = await api.post("/sca/auth/login", data);
+            const response = await api.post("/sca/auth/login",{"email": "ichurch@gmail.com", "password": "12345678"} );
             const token = response.data.token;
             await AsyncStorage.setItem("token", token);
 
@@ -59,9 +59,9 @@ export default function LoginScreen() {
         }
     };
 
-    // useEffect(() => {
-    //     onSubmit()
-    // }, []);
+    useEffect(() => {
+        onSubmit()
+    }, []);
 
     return (
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={[styles.container, { backgroundColor: theme.colors.background }]}>

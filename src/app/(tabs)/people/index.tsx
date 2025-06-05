@@ -1,333 +1,239 @@
-import {useEffect, useState} from 'react';
-import {Alert, FlatList, Modal, RefreshControl, StyleSheet, TextInput, TouchableOpacity, View} from 'react-native';
-import {Avatar, Button, FAB, IconButton, Menu, Switch, Text} from 'react-native-paper';
-import {useNavigation, useRouter} from "expo-router";
-import {getUsers} from '@/src/api/peopleService';
-import {useAppTheme} from "@/src/contexts/ThemeProvider";
-import {Picker} from "@react-native-picker/picker";
-import api from "@/src/api/api";
-import {PeopleDTO} from "@/src/dto/PeopleDTO";
-export default function PeopleScreen() {
-    const theme = useAppTheme().theme;
-    const [people, setPeople] = useState<PeopleDTO[]>([]);
-    const [filteredPeople, setFilteredPeople] = useState<PeopleDTO[]>([]);
-    const [refreshing, setRefreshing] = useState(false);
-    const [showFilterModal, setShowFilterModal] = useState(false);
-    const [filterType, setFilterType] = useState<string | null>(null);
-    const [includeInactive, setIncludeInactive] = useState(false);
-    const [showSearch, setShowSearch] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [visibleMenus, setVisibleMenus] = useState<{ [key: string]: boolean }>({});
-    const router = useRouter();
-    const navigation = useNavigation();
+import React, { useState } from "react";
+import {
+    View,
+    StyleSheet,
+    FlatList,
+    TextInput,
+    TouchableOpacity,
+    Image,
+    Text,
+} from "react-native";
+import { Button, IconButton, useTheme } from "react-native-paper";
+import {router} from "expo-router";
 
-    useEffect(() => {
-        fetchPeople();
-    }, [includeInactive]);
+interface Person {
+    id: string;
+    name: string;
+    description: string;
+    avatar: string;
+}
 
-    useEffect(() => {
-        navigation.setOptions({
-            headerStyle: { backgroundColor: theme.colors.surface }, // 🔥 Aplica a cor do header
-            headerTintColor: theme.colors.onSurface, // 🔥 Cor do texto do header
-            headerRight: () => (
-                <View style={styles.headerButtons}>
-                    <IconButton
-                        icon="magnify"
-                        size={24}
-                        onPressOut={toggleSearch}
-                        style={styles.headerIcon}
-                    />
-                    <IconButton
-                        icon="filter"
-                        size={24}
-                        onPressOut={() => setShowFilterModal(true)}
-                        style={styles.headerIcon}
-                    />
-                </View>
-            ),
-        });
-    }, [theme]);
+const peopleData: Person[] = [
+    {
+        id: "1",
+        name: "Sowe Name",
+        description: "Ministry",
+        avatar:
+            "https://randomuser.me/api/portraits/women/68.jpg",
+    },
+    {
+        id: "2",
+        name: "Corise",
+        description: "Some Non",
+        avatar:
+            "https://randomuser.me/api/portraits/women/72.jpg",
+    },
+    {
+        id: "3",
+        name: "Mawe Name",
+        description: "Minn Non",
+        avatar:
+            "https://randomuser.me/api/portraits/women/65.jpg",
+    },
+    {
+        id: "4",
+        name: "Mowy Name",
+        description: "Reme Recr",
+        avatar:
+            "https://randomuser.me/api/portraits/women/66.jpg",
+    },
+    {
+        id: "5",
+        name: "Soblietiom",
+        description: "Creme Rem",
+        avatar:
+            "https://randomuser.me/api/portraits/women/75.jpg",
+    },
+];
 
-    const toggleSearch = () => {
-        setShowSearch((prev) => {
-            if (prev) {
-                fetchPeople();
-                setSearchQuery('');
-            }
-            return !prev;
-        });
-    };
+export default function PeopleListScreen() {
+    const theme = useTheme();
 
-    const fetchPeople = async () => {
-        try {
-            setRefreshing(true);
-            const statusParam = includeInactive ? "" : "?status=active";
-            const users = await getUsers(statusParam);
-            const sortedPeople = users.data.sort((a: PeopleDTO, b: PeopleDTO) =>
-                a.name.localeCompare(b.name)
-            );
+    const [filterActive, setFilterActive] = useState<"filter" | "ministry" | "role">("filter");
+    const [search, setSearch] = useState("");
 
-            setPeople(sortedPeople);
-            setFilteredPeople(sortedPeople);
-        } catch (error: any) {
-            console.error('Erro ao buscar usuários:', error.message);
-        } finally {
-            setRefreshing(false);
-        }
-    };
-    const translateUserType = (type: string) => {
-        switch (type) {
-            case "visitor":
-                return "Visitante";
-            case "regular_attendee":
-                return "Frequentador";
-            case "member":
-                return "Membro";
-            default:
-                return "Desconhecido";
-        }
-    };
-
-    const applyFilters = () => {
-        let filteredList = people;
-
-        if (searchQuery) {
-            filteredList = filteredList.filter(person =>
-                person.name.toLowerCase().includes(searchQuery.toLowerCase())
-            );
-        }
-
-        if (filterType && filterType !== "all") {
-            filteredList = filteredList.filter(person => person.type === filterType);
-        }
-
-        setFilteredPeople(filteredList);
-        setShowFilterModal(false); // 🔥 Fecha automaticamente o modal após aplicar os filtros
-    };
-
-    const handleEdit = (id: string) => {
-        router.push({
-            pathname: "/people/upsert",
-            params: { id },
-        });
-    };
-
-    const handleNewLogin = (id: string, name: string) => {
-        router.push({
-            pathname: "/people/CreateUserModal",
-            params: { id , name},
-        });
-    };
-
-    const toggleStatus = async (id: string) => {
-        try {
-            const response = await api.patch(`community/people/${id}/toggle-status`);
-            fetchPeople();
-            Alert.alert("Sucesso", response.data.message);
-        } catch (error: any) {
-            console.error('Erro ao alternar status do usuário:', error.message);
-            Alert.alert("Erro", "Falha ao alterar status do usuário.");
-        }
-    };
-
-    const filterPeople = (query: string) => {
-        setSearchQuery(query);
-        if (!query) {
-            setFilteredPeople(people);
-        } else {
-            const filteredList = people.filter(person =>
-                person.name.toLowerCase().includes(query.toLowerCase())
-            );
-            setFilteredPeople(filteredList);
-        }
-    };
-
-    const createUserForPerson = async (person: PeopleDTO) => {
-        try {
-            const nameParts = person.name.trim().split(" ");
-            if (nameParts.length < 2) {
-                Alert.alert("Erro", "O nome da pessoa deve ter pelo menos um sobrenome.");
-                return;
-            }
-
-            const firstName = nameParts[0].toLowerCase();
-            const lastName = nameParts[nameParts.length - 1].toLowerCase();
-            const email = `${firstName}.${lastName}@email.com`;
-
-            const userData = {
-                email,
-                password: "senha123",
-                person_id: person.id,
-                role: "user",
-            };
-
-            const response = await api.post("/sca/auth/register", userData);
-
-            Alert.alert("Sucesso", `Usuário criado com sucesso!\nEmail: ${email}\nSenha: senha123`);
-        } catch (error: any) {
-            console.error("Erro ao criar usuário:", error);
-            Alert.alert("Erro", "Falha ao criar usuário.");
-        }
-    };
-
+    const filteredPeople = peopleData.filter(
+        (p) =>
+            p.name.toLowerCase().includes(search.toLowerCase()) ||
+            p.description.toLowerCase().includes(search.toLowerCase())
+    );
 
     return (
         <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-            {showSearch && (
-                <View style={[styles.searchContainer, { backgroundColor: theme.colors.surface }]}>
-                    <TextInput
-                        placeholder="Pesquisar por nome..."
-                        style={styles.searchInput}
-                        value={searchQuery}
-                        onChangeText={filterPeople}
-                        placeholderTextColor={theme.colors.onSurfaceVariant}
-                    />
-                    <IconButton
-                        icon="close"
-                        size={20}
-                        onPress={toggleSearch}
-                        style={styles.searchCloseIcon}
-                    />
-                </View>
-            )}
+            <Text style={styles.headerTitle}>People <Text style={styles.headerSubtitle}>/ Members</Text></Text>
 
+            <TextInput
+                placeholder="Search"
+                value={search}
+                onChangeText={setSearch}
+                style={[styles.searchInput, { borderColor: theme.colors.disabled }]}
+                placeholderTextColor={theme.colors.disabled}
+            />
+
+            {/* Filtros */}
+            <View style={styles.filtersRow}>
+                <TouchableOpacity
+                    style={[styles.filterTab, filterActive === "filter" && styles.filterTabActive]}
+                    onPress={() => setFilterActive("filter")}
+                >
+                    <Text style={[styles.filterText, filterActive === "filter" && styles.filterTextActive]}>
+                        Filter by
+                    </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={[styles.filterTab, filterActive === "ministry" && styles.filterTabActive]}
+                    onPress={() => setFilterActive("ministry")}
+                >
+                    <Text style={[styles.filterText, filterActive === "ministry" && styles.filterTextActive]}>
+                        Ministry
+                    </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={[styles.filterTab, filterActive === "role" && styles.filterTabActive]}
+                    onPress={() => setFilterActive("role")}
+                >
+                    <Text style={[styles.filterText, filterActive === "role" && styles.filterTextActive]}>
+                        Role
+                    </Text>
+                </TouchableOpacity>
+
+                <View style={{ flex: 1 }} />
+                <Button
+                    mode="contained"
+                    onPress={() => {
+                        router.push("/people/upsert");
+                    }}
+                    compact
+                    contentStyle={{ paddingVertical: 4, paddingHorizontal: 12 }}
+                >
+                    Add New Person
+                </Button>
+            </View>
+
+            {/* Lista de pessoas */}
             <FlatList
                 data={filteredPeople}
                 keyExtractor={(item) => item.id}
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={fetchPeople} />}
+                style={{ marginTop: 16 }}
                 renderItem={({ item }) => (
-                    <TouchableOpacity style={styles.listItem}>
-                        {/* Avatar */}
-                        {item.photo ? (
-                            <Avatar.Image size={40} style={styles.avatar} source={{ uri: `https://ichurch-storage.s3.us-east-1.amazonaws.com/${item.photo}` }} />
-                        ) : (
-                            <Avatar.Icon size={40} icon="account" style={[styles.avatarIcon, { backgroundColor: theme.colors.surfaceVariant }]} />
-                        )}
+                    <View style={[styles.personCard, { backgroundColor: theme.colors.surface }]}>
+                        <Image source={{ uri: item.avatar }} style={styles.avatar} />
 
-                        {/* Nome e Tipo */}
-                        <View style={styles.userInfo}>
-                            <Text style={[styles.userName, { color: theme.colors.onSurface }]}>{item.name}</Text>
-                            <Text style={[styles.userType, { color: theme.colors.onSurfaceVariant }]}>{translateUserType(item.type)}</Text>
+                        <View style={styles.personInfo}>
+                            <Text style={[styles.personName, { color: theme.colors.onSurface }]}>
+                                {item.name}
+                            </Text>
+                            <Text style={[styles.personDescription, { color: theme.colors.onSurfaceVariant }]}>
+                                {item.description}
+                            </Text>
                         </View>
 
-                        {/* Botão de Menu */}
-                        <Menu
-                            visible={visibleMenus[item.id] || false}
-                            onDismiss={() => setVisibleMenus(prev => ({ ...prev, [item.id]: false }))}
-                            anchor={
-                                <IconButton
-                                    icon="dots-vertical"
-                                    size={24}
-                                    iconColor={theme.colors.onSurface}
-                                    onPress={() => setVisibleMenus(prev => ({ ...prev, [item.id]: true }))}
-                                />
-                            }
-                        >
-                            <Menu.Item onPress={() => handleEdit(item.id)} title="Editar" leadingIcon="pencil" />
-                            <Menu.Item onPress={() => handleNewLogin(item.id, item.name)} title="Criar conta" leadingIcon="account-plus" />
-                            <Menu.Item onPress={() => toggleStatus(item.id)} title="Inativar" leadingIcon="account-off" />
-                        </Menu>
-                    </TouchableOpacity>
+                        <IconButton
+                            icon="account-circle-outline"
+                            size={28}
+                            onPress={() => alert(`Profile: ${item.name}`)}
+                            style={styles.profileButton}
+                            color={theme.colors.primary}
+                        />
+                    </View>
                 )}
             />
 
-            <FAB
-                icon="plus"
-                color={theme.colors.onPrimary}
-                style={[styles.fab, { backgroundColor: theme.colors.primary }]}
-                onPress={() => router.push('/people/upsert')}
-            />
-            <Modal visible={showFilterModal} transparent animationType="slide">
-                <View style={styles.modalContainer}>
-                    <View style={[styles.modalContent, { backgroundColor: theme.colors.surface }]}>
-                        <IconButton
-                            icon="close"
-                            size={24}
-                            onPress={() => setShowFilterModal(false)}
-                            style={styles.modalCloseButton}
-                        />
-
-                        <Picker
-                            selectedValue={filterType}
-                            onValueChange={(value) => setFilterType(value)}
-                            style={[styles.picker, { backgroundColor: theme.colors.surfaceVariant, color: theme.colors.onSurface }]}
-                        >
-                            <Picker.Item label="Todos" value="all" />
-                            <Picker.Item label="Visitante" value="visitor" />
-                            <Picker.Item label="Frequentador" value="regular_attendee" />
-                            <Picker.Item label="Membro" value="member" />
-                        </Picker>
-
-                        <View style={styles.switchContainer}>
-                            <Text style={[styles.filterLabel, { color: theme.colors.onSurface }]}>Incluir Inativos:</Text>
-                            <Switch
-                                value={includeInactive}
-                                onValueChange={() => setIncludeInactive(!includeInactive)}
-                            />
-                        </View>
-
-                        <Button mode="contained" onPress={applyFilters} style={[styles.applyFilterButton, { backgroundColor: theme.colors.primary }]}>
-                            Aplicar Filtro
-                        </Button>
-                    </View>
-                </View>
-            </Modal>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, padding: 20 },
-    searchContainer: { flexDirection: 'row', alignItems: 'center', borderRadius: 8, paddingHorizontal: 10 },
-    searchInput: { flex: 1, fontSize: 16 },
-    searchCloseIcon: { marginLeft: 8 },
-    listItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12 },
-    avatar: { marginRight: 10 },
-    avatarIcon: { marginRight: 10 },
-    userInfo: { flex: 1 },
-    userName: { fontSize: 18, fontWeight: 'bold' },
-    userType: { fontSize: 14 },
-    headerButtons: { flexDirection: "row", gap: 10, marginRight: 10 },
-    headerIcon: { backgroundColor: "transparent", marginHorizontal: 5 },
-    fab: { position: 'absolute', right: 20, bottom: 30 },
-    modalContainer: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "rgba(0,0,0,0.5)", // 🔥 Fundo escuro semi-transparente
+    container: { flex: 1, paddingHorizontal: 16, paddingTop: 40 },
+    headerTitle: {
+        fontSize: 28,
+        fontWeight: "bold",
+        color: "#000",
     },
-
-    modalContent: {
-        width: "85%",
-        padding: 20,
-        borderRadius: 10,
-        alignItems: "center",
-        elevation: 5,
+    headerSubtitle: {
+        fontWeight: "normal",
+        color: "#888",
     },
-
-    modalCloseButton: {
-        alignSelf: "flex-end",
-        marginBottom: 10,
+    searchInput: {
+        marginTop: 12,
+        height: 44,
+        borderWidth: 1,
+        borderRadius: 8,
+        paddingHorizontal: 12,
+        fontSize: 16,
     },
-
-    switchContainer: {
+    filtersRow: {
         flexDirection: "row",
-        justifyContent: "space-between",
+        marginTop: 12,
         alignItems: "center",
-        width: "100%",
-        marginBottom: 15,
     },
-
-    filterLabel: {
+    filterTab: {
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        borderBottomWidth: 2,
+        borderBottomColor: "transparent",
+    },
+    filterTabActive: {
+        borderBottomColor: "#3B82F6",
+    },
+    filterText: {
+        fontSize: 16,
+        color: "#000",
+    },
+    filterTextActive: {
+        color: "#3B82F6",
+        fontWeight: "bold",
+    },
+    personCard: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 10,
+        borderRadius: 8,
+        padding: 12,
+        elevation: 2,
+        shadowColor: "#000",
+        shadowOpacity: 0.1,
+        shadowOffset: { width: 0, height: 1 },
+        shadowRadius: 4,
+    },
+    avatar: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+    },
+    personInfo: {
+        flex: 1,
+        marginLeft: 12,
+    },
+    personName: {
         fontSize: 16,
         fontWeight: "bold",
     },
-
-    applyFilterButton: {
-        marginTop: 10,
-        width: "100%",
-        borderRadius: 8,
-        paddingVertical: 8,
+    personDescription: {
+        fontSize: 14,
+        marginTop: 2,
     },
-    picker: { width: "100%", borderRadius: 8, marginBottom: 15 },
+    profileButton: {
+        marginLeft: 12,
+    },
+    bottomNav: {
+        height: 60,
+        borderTopWidth: 1,
+        flexDirection: "row",
+        justifyContent: "space-around",
+        alignItems: "center",
+        marginTop: 10,
+    },
 });
