@@ -1,14 +1,15 @@
 import React from 'react';
-import { Tabs } from 'expo-router';
-import { FontAwesome } from "@expo/vector-icons";
+import {Tabs} from 'expo-router';
+import {FontAwesome} from "@expo/vector-icons";
 import Feather from '@expo/vector-icons/Feather';
-import { useTheme } from "react-native-paper";
+import {useTheme} from "react-native-paper";
+import {MinistryProvider} from "@/src/contexts/MinistryProvider";
 
 export default function Layout() {
     const theme = useTheme(); // 🔥 Pegando o tema atual
 
     return (
-        <Tabs screenOptions={{
+        <MinistryProvider> <Tabs screenOptions={{
             headerShown: false,
             tabBarStyle: {
                 backgroundColor: theme.colors.background, // 🔥 Mantém a TabBar Dark
@@ -21,37 +22,38 @@ export default function Layout() {
                 name="index"
                 options={{
                     title: 'Home',
-                    tabBarIcon: ({ color }) => <FontAwesome size={24} name="home" color={color} />,
+                    tabBarIcon: ({color}) => <FontAwesome size={24} name="home" color={color}/>,
                 }}
             />
             <Tabs.Screen
                 name="people"
                 options={{
                     title: 'Pessoas',
-                    tabBarIcon: ({ color }) => <Feather name="users" size={24} color={color} />,
+                    tabBarIcon: ({color}) => <Feather name="users" size={24} color={color}/>,
                 }}
             />
             <Tabs.Screen
                 name="events"
                 options={{
                     title: 'Eventos',
-                    tabBarIcon: ({ color }) => <Feather name="calendar" size={24} color={color} />,
+                    tabBarIcon: ({color}) => <Feather name="calendar" size={24} color={color}/>,
                 }}
             />
             <Tabs.Screen
                 name="ministery"
                 options={{
                     title: 'Ministério',
-                    tabBarIcon: ({ color }) => <Feather name="briefcase" size={24} color={color} />,
+                    tabBarIcon: ({color}) => <Feather name="briefcase" size={24} color={color}/>,
                 }}
             />
             <Tabs.Screen
                 name="settings"
                 options={{
                     title: 'Configurações',
-                    tabBarIcon: ({ color }) => <Feather name="settings" size={24} color={color} />,
+                    tabBarIcon: ({color}) => <Feather name="settings" size={24} color={color}/>,
                 }}
             />
         </Tabs>
+        </MinistryProvider>
     );
 }

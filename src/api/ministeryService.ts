@@ -14,7 +14,7 @@ export const createMinistery = async (ministeryData: MinisteryDTO) => {
     }
 };
 
-export const updateMinistery = async (id: string, ministeryData: MinisteryDTO) => {
+export const updateMinistery = async (id: string, ministeryData: Partial<MinisteryDTO>) => {
     try {
         const response = await api.put(`/ministry/ministries/${id}`, ministeryData, {
             headers: { "Content-Type": "application/json" },

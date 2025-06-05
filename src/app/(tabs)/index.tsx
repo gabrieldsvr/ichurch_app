@@ -1,9 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { View, FlatList, StyleSheet } from 'react-native';
-import { Text, Card, ActivityIndicator, useTheme } from 'react-native-paper';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import React, {useCallback, useState} from 'react';
+import {FlatList, StyleSheet, TouchableOpacity, View} from 'react-native';
+import {ActivityIndicator, Card, Text} from 'react-native-paper';
+import Animated, {FadeInDown} from 'react-native-reanimated';
 import {ThemeProvider, useAppTheme} from '@/src/contexts/ThemeProvider';
 import api from "@/src/api/api";
+import {useFocusEffect} from "expo-router";
+import {MinisteryDTO} from "@/src/dto/MinisteryDTO";
+import {useMinistry} from "@/src/contexts/MinistryProvider";
+
 interface BirthdayDTO {
     id: string;
     name: string;
@@ -18,104 +22,120 @@ interface EventDTO {
 
 export default function HomeScreen() {
     const theme = useAppTheme().theme; // 🔥 Obtendo o tema atual
-    const [birthdays, setBirthdays] = useState<BirthdayDTO[]>([]);
-    const [events, setEvents] = useState<EventDTO[]>([]);
-    const [loadingBirthdays, setLoadingBirthdays] = useState(true);
-    const [loadingEvents, setLoadingEvents] = useState(true);
+    const [ministries, setMinistries] = useState<MinisteryDTO[]>([]);
+    const [loadingMinistries, setLoadingMinistries] = useState(true);
 
-    useEffect(() => {
-        fetchBirthdays();
-        fetchEvents();
-    }, []);
+    const {currentMinistryId, setCurrentMinistryId} = useMinistry();
 
-    const fetchBirthdays = async () => {
+    console.log("Current Ministry ID:", currentMinistryId);
+
+    const fetchMinistries = async () => {
         try {
-            const response = await api.get('/community/reports/birthdays-this-week');
-            setBirthdays(response.data);
-        } catch (error: any) {
-            console.error('Erro ao buscar aniversariantes:', error.message);
+            const response = await api.get("/ministry/ministries");
+            const list = response.data;
+            setMinistries(list);
+
+            if (list.length > 0) {
+                const coreMinistry = list.find((m: MinisteryDTO) => m.type === "core");
+                console.log('set')
+                setCurrentMinistryId(coreMinistry?.id ?? list[0].id);
+            }
+        } catch (error) {
+            console.error("Erro ao buscar ministérios:", error);
         } finally {
-            setLoadingBirthdays(false);
+            setLoadingMinistries(false);
         }
     };
 
-    const fetchEvents = async () => {
-        try {
-            const response = await api.get('/community/events?week=true'); // 🔥 Ajuste a rota conforme necessário
-            setEvents(response.data);
-        } catch (error: any) {
-            console.error('Erro ao buscar eventos:', error.message);
-        } finally {
-            setLoadingEvents(false);
-        }
-    };
 
+    useFocusEffect(
+        useCallback(() => {
+            fetchMinistries();
+        }, [])
+    );
     return (
         <ThemeProvider>
-        <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-            {/* Título e subtítulo animados */}
-            <Animated.Text entering={FadeInDown.duration(600)} style={[styles.title, { color: theme.colors.secondary }]}>
-                📖 iChurch
-            </Animated.Text>
-            <Animated.Text entering={FadeInDown.duration(800)} style={[styles.subtitle, { color: theme.colors.secondary }]}>
-                "Servindo com excelência, amando com propósito."
-            </Animated.Text>
+            <View style={[styles.container, {backgroundColor: theme.colors.background}]}>
+                {/* Título e subtítulo animados */}
+                <Animated.Text entering={FadeInDown.duration(600)}
+                               style={[styles.title, {color: theme.colors.secondary}]}>
+                    📖 iChurch
+                </Animated.Text>
+                <Animated.Text entering={FadeInDown.duration(800)}
+                               style={[styles.subtitle, {color: theme.colors.secondary}]}>
+                    "Servindo com excelência, amando com propósito."
+                </Animated.Text>
 
-            {/* Seção de aniversariantes */}
-            <Text style={[styles.sectionTitle, { color: theme.colors.secondary }]}>🎉 Aniversariantes da Semana 🎂</Text>
-            {loadingBirthdays ? (
-                <ActivityIndicator size="large" color={theme.colors.secondary} />
-            ) : (
-                <FlatList
-                    data={birthdays}
-                    keyExtractor={(item) => item.id}
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.listContainer}
-                    renderItem={({ item }) => (
-                        <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-                            <Card.Content>
-                                <Text style={[styles.name, { color: theme.colors.onSurface }]}>{item.name}</Text>
-                                <Text style={[styles.date, { color: theme.colors.onSurfaceVariant }]}>
-                                    🎈 {new Date(item.birth_date).toLocaleDateString()}
-                                </Text>
-                            </Card.Content>
-                        </Card>
+                <Text style={[styles.sectionTitle, {color: theme.colors.secondary}]}>
+                    🙌 Ministérios
+                </Text>
+                <View style={styles.view}>
+                    {loadingMinistries ? (
+                        <ActivityIndicator size="small" color={theme.colors.secondary}/>
+                    ) : (
+                        <FlatList
+                            data={ministries}
+                            keyExtractor={(item) => item.id}
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={styles.listContainer}
+                            renderItem={({item}) => (
+                                <TouchableOpacity
+                                    onPress={() => setCurrentMinistryId(item.id)}
+                                    style={[
+                                        styles.ministryCard,
+                                        currentMinistryId === item.id && styles.selectedCard,
+                                    ]}
+                                >
+                                    <Card.Content>
+                                        <Text style={styles.ministryName}>{item.name}</Text>
+                                        <Text style={styles.ministryInfo}>👥 Membros: {item.members || 0}</Text>
+                                    </Card.Content>
+                                </TouchableOpacity>
+                            )}
+                        />
                     )}
-                />
-            )}
+                </View>
 
-            {/* Seção de eventos */}
-            <Text style={[styles.sectionTitle, { color: theme.colors.secondary }]}>📅 Eventos da Semana</Text>
-            {loadingEvents ? (
-                <ActivityIndicator size="large" color={theme.colors.secondary} />
-            ) : (
-                <FlatList
-                    data={events}
-                    keyExtractor={(item) => item.id}
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.listContainer}
-                    renderItem={({ item }) => (
-                        <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-                            <Card.Content>
-                                <Text style={[styles.name, { color: theme.colors.onSurface }]}>{item.name}</Text>
-                                <Text style={[styles.date, { color: theme.colors.onSurfaceVariant }]}>
-                                    🗓 {new Date(item.event_date).toLocaleDateString()}
-                                </Text>
-                            </Card.Content>
-                        </Card>
-                    )}
-                />
-            )}
-        </View></ThemeProvider>
+                <Text style={[styles.sectionTitle, {color: theme.colors.secondary}]}>
+                    🙌 Ministérios
+                </Text>
+            </View></ThemeProvider>
     );
 }
 
 const styles = StyleSheet.create({
+    listContainer: {
+        paddingBottom: 8,
+    },
+    ministryCard: {
+        width: 160,
+        height: 100,
+        marginRight: 12,
+        padding: 12,
+        borderRadius: 12,
+        backgroundColor: "#2A2A2A",
+        justifyContent: "center",
+        elevation: 3,
+    },
+    selectedCard: {
+        borderWidth: 2,
+        borderColor: "#1E90FF",
+    },
+    ministryName: {
+        fontSize: 16,
+        fontWeight: "bold",
+        color: "#FFFFFF",
+        marginBottom: 4,
+    },
+    ministryInfo: {
+        fontSize: 14,
+        color: "#CCCCCC",
+    },
     container: {
         flex: 1,
-        padding: 20,
+        paddingHorizontal: 15,
+        paddingTop: 50,
     },
     title: {
         fontSize: 28,
@@ -134,17 +154,20 @@ const styles = StyleSheet.create({
         marginTop: 20,
         marginBottom: 10,
     },
-    listContainer: {
-        paddingLeft: 10,
-    },
+
     card: {
-        width: 160,
+        width: 120,
+        height: 80,
         marginRight: 10,
-        padding: 10,
-        elevation: 3,
-        borderRadius: 8,
-        alignItems: 'center',
+        padding: 12,
+        borderRadius: 12,
+        justifyContent: "center",
+        alignItems: "center",
+        elevation: 2,
+        borderWidth: 1,
+        borderColor: "transparent",
     },
+
     name: {
         fontSize: 16,
         fontWeight: 'bold',
@@ -154,4 +177,11 @@ const styles = StyleSheet.create({
         fontSize: 14,
         textAlign: 'center',
     },
+    view: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 20,
+    }
+
 });
