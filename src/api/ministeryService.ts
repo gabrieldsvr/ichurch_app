@@ -3,6 +3,7 @@ import {MinisteryDTO} from "@/src/dto/MinisteryDTO";
 
 export const createMinistery = async (ministeryData: MinisteryDTO) => {
     try {
+        console.log(ministeryData)
         const response = await api.post('/ministry/ministries', ministeryData, {
             headers: { "Content-Type": "application/json" }
         });

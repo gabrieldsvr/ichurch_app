@@ -1,12 +1,16 @@
-interface PeopleDTO {
+export interface PeopleDTO {
     id: string;
+    companyId: string;
+    userId?: string | null;
     name: string;
-    phone: string;
-    instagram?: string;
-    birth_date: Date;
-    community_id: string;
+    phone?: string | null;
+    email?: string | null;
+    birthDate?: Date | null; // Date em ISO string (ex: "2025-06-05")
     type: 'visitor' | 'regular_attendee' | 'member';
-    parentName?: string;
-    parentPhone?: string;
-    photo?: string;
+    joinedAt?: string | null;
+    status: 'active' | 'inactive' | 'deleted';
+    config?: any; // ou defina melhor se souber o formato do JSON
+    photo?: string | null;
+    createdAt: string;
+    updatedAt: string;
 }

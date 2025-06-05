@@ -1,11 +1,9 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { logToDiscord } from "@/src/api/logService";
 
-// 🔥 Definir a URL base da API
-const API_URL = "https://ichurch-backend.com.br"; // 🚀 Substitua pela URL real
-// const API_URL = "http://localhost:3000"; // 🚀 Substitua pela URL real
+const API_URL = "https://ichurch-backend.com.br";
 
-// 🔥 Criar instância do Axios
 const api = axios.create({
     baseURL: API_URL,
     headers: {
@@ -13,7 +11,6 @@ const api = axios.create({
     },
 });
 
-// 🔹 Interceptor para adicionar Token automaticamente às requisições
 api.interceptors.request.use(
     async (config) => {
         try {
@@ -22,39 +19,54 @@ api.interceptors.request.use(
                 config.headers.Authorization = `Bearer ${token}`;
             }
 
-            // 🚀 LOG DA REQUISIÇÃO
-            console.log(`[API REQUEST] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
-            console.log(`[API REQUEST HEADERS]`, config.headers);
-            if (config.data) {
-                console.log(`[API REQUEST DATA]`, config.data);
-            }
+            const method = config.method?.toUpperCase();
+            const url = `${config.baseURL}${config.url}`;
+
+            console.log(`[API REQUEST] ${method} ${url}`);
+            console.log(`[API HEADERS]`, config.headers);
         } catch (error) {
             console.error("Erro ao recuperar token:", error);
+            await logToDiscord("🚫 **Erro ao recuperar token do AsyncStorage**", "ERROR");
         }
         return config;
     },
-    (error) => {
-        return Promise.reject(error);
-    }
+    (error) => Promise.reject(error)
 );
 
-// 🔹 Interceptor para lidar com erros de autenticação (ex: Token Expirado)
 api.interceptors.response.use(
     (response) => {
-        console.log(`[API RESPONSE] ${response.config.method?.toUpperCase()} ${response.config.url}`);
-        console.log(`[API RESPONSE DATA]`, response.data);
+        const method = response.config.method?.toUpperCase();
+        const url = response.config.url;
+
+        console.log(`[API RESPONSE] ${method} ${url}`);
+
         return response;
     },
     async (error) => {
+        const method = error.config?.method?.toUpperCase();
+        const url = error.config?.url;
+        const status = error.response?.status;
+        const errorMsg = error.response?.data?.message || error.message;
+
         if (error.response) {
-            console.error(`[API ERROR ${error.response.status}] ${error.config?.url}`, error.response.data);
+            console.error(`[API ERROR ${status}] ${method} ${url}`, error.response.data);
+
+            await logToDiscord(
+                `❌ **API ERROR**\n🔗 URL: \`${method} ${url}\`\n📥 Status: \`${status}\`\n🧾 Erro: \`${errorMsg}\``,
+                "ERROR"
+            );
         } else {
             console.error(`[API ERROR]`, error.message);
+            await logToDiscord(
+                `🚫 **Erro de conexão com API**\n💬 Mensagem: \`${error.message}\``,
+                "ERROR"
+            );
         }
 
-        if (error.response?.status === 401) {
+        if (status === 401) {
             await AsyncStorage.removeItem("token");
             console.warn("Sessão expirada. Faça login novamente.");
+            await logToDiscord("⚠️ **Sessão expirada. Token removido.**", "WARN");
         }
 
         return Promise.reject(error);

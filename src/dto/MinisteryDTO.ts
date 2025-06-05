@@ -1,8 +1,9 @@
 export interface MinisteryDTO {
-    id?: string;
+    id: string;
+    company_id: string;
     name: string;
     description?: string;
-    company_id?: string;
-    created_at?: string;
-    updated_at?: string;
+    type: "core" | "worship" | "cell" | "finance" | "service";
+    visibility: "public" | "secret" | "private";
+    status: "active" | "inactive";
 }

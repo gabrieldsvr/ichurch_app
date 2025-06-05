@@ -42,7 +42,7 @@ export default function Layout() {
                 name="ministery"
                 options={{
                     title: 'Ministério',
-                    tabBarIcon: ({ color }) => <Feather name="alert-circle" size={24} color={color} />,
+                    tabBarIcon: ({ color }) => <Feather name="briefcase" size={24} color={color} />,
                 }}
             />
             <Tabs.Screen

@@ -19,6 +19,7 @@ export default function PeopleLayout() {
                     options={{ title: "Gerenciar Pessoa" }}
                 />
                 <Stack.Screen name="upload" options={{ title: "Importar Pessoas" }} />
+                <Stack.Screen name="CreateUserModal" options={{ title: "novo login" }} />
             </Stack>
         </ThemeProvider>
     );

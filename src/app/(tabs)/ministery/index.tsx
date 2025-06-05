@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
     ActivityIndicator,
     FlatList,
@@ -7,11 +7,11 @@ import {
     TouchableOpacity,
     View,
     RefreshControl,
-    Button,
 } from "react-native";
-import { router, useFocusEffect } from "expo-router";
+import { useFocusEffect, router } from "expo-router";
 import { getMinisteries } from "@/src/api/ministeryService";
 import { MinisteryDTO } from "@/src/dto/MinisteryDTO";
+import { Button } from "react-native-paper";
 
 export default function MinisteryHome() {
     const [ministeries, setMinisteries] = useState<MinisteryDTO[]>([]);
@@ -41,12 +41,23 @@ export default function MinisteryHome() {
         fetchMinisteries();
     };
 
+    const handleOpen = (id: string) => {
+        router.push({
+            pathname: "/ministery/ministery-detail",
+            params: { id },
+        });
+    };
+
     return (
         <View style={styles.container}>
-            <Button title="Novo Ministério" onPress={() => router.push("/ministery/upsert-ministery")} />
+            <Button mode="contained" onPress={() => router.push("/ministery/upsert-ministery")}>
+                Novo Ministério
+            </Button>
 
             {loading ? (
                 <ActivityIndicator size="large" style={styles.loader} />
+            ) : ministeries.length === 0 ? (
+                <Text style={styles.emptyText}>Nenhum ministério encontrado.</Text>
             ) : (
                 <FlatList
                     data={ministeries}
@@ -54,18 +65,9 @@ export default function MinisteryHome() {
                     contentContainerStyle={styles.listContainer}
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
                     renderItem={({ item }) => (
-                        <TouchableOpacity
-                            onPress={() =>     router.push({
-                                pathname: "/ministery/ministery-detail",
-                                params: { "id" : item.id },
-                            })
-                        }
-                            style={styles.card}
-                        >
+                        <TouchableOpacity style={styles.card} onPress={() => handleOpen(item.id)}>
                             <Text style={styles.cardTitle}>{item.name}</Text>
-                            {item.description && (
-                                <Text style={styles.cardDescription}>{item.description}</Text>
-                            )}
+                            {item.description && <Text style={styles.cardDescription}>{item.description}</Text>}
                         </TouchableOpacity>
                     )}
                 />
@@ -80,24 +82,34 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     loader: {
-        marginTop: 20,
+        marginTop: 30,
     },
     listContainer: {
         marginTop: 20,
+        paddingBottom: 20,
     },
     card: {
-        padding: 15,
+        padding: 16,
         borderWidth: 1,
         borderColor: "#ccc",
         borderRadius: 8,
-        marginBottom: 10,
+        marginBottom: 12,
+        backgroundColor: "#fff",
     },
     cardTitle: {
         fontSize: 18,
-        fontWeight: "500",
+        fontWeight: "600",
+        color: "#333",
     },
     cardDescription: {
+        marginTop: 6,
+        fontSize: 14,
         color: "#666",
-        marginTop: 4,
+    },
+    emptyText: {
+        marginTop: 40,
+        textAlign: "center",
+        fontSize: 16,
+        color: "#999",
     },
 });

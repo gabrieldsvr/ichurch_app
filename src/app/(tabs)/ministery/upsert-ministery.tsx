@@ -1,32 +1,34 @@
-import { useEffect, useState } from "react";
-import {
-    View,
-    Text,
-    TextInput,
-    Alert,
-    StyleSheet,
-    TouchableOpacity,
-    ActivityIndicator,
-} from "react-native";
-import { createMinistery, getMinisteryById, updateMinistery } from "@/src/api/ministeryService";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import {useEffect, useState} from "react";
+import {ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View,} from "react-native";
+
+import {createMinistery, getMinisteryById, updateMinistery} from "@/src/api/ministeryService";
+import {useLocalSearchParams, useRouter} from "expo-router";
+import {MinistryType} from "@/src/types/MinisteryType";
+import {MINISTRY_TYPES} from "@/src/enum/MINISTRY_TYPES";
+import {MinistryVisibility} from "@/src/types/MinistryVisibility";
+import {VISIBILITY_OPTIONS} from "@/src/enum/VISIBILITY_OPTIONS";
 
 export default function MinisteryForm() {
-    const { id } = useLocalSearchParams<{ id?: string }>();
+    const {id} = useLocalSearchParams<{ id?: string }>();
+    const isEditing = !!id;
+    const router = useRouter();
+
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
+    const [type, setType] = useState<MinistryType>(MinistryType.CELULA);
+    const [visibility, setVisibility] = useState<MinistryVisibility>(MinistryVisibility.PUBLIC);
     const [loading, setLoading] = useState(false);
-    const router = useRouter();
-    const isEditing = !!id;
 
     useEffect(() => {
         if (isEditing) {
-            const fetchMinistery = async () => {
+            const fetch = async () => {
                 try {
                     setLoading(true);
                     const data = await getMinisteryById(id!);
-                    setName(data.name || "");
-                    setDescription(data.description || "");
+                    setName(data.name);
+                    setDescription(data.description);
+                    setType(data.type);
+                    setVisibility(data.visibility);
                 } catch {
                     Alert.alert("Erro", "Erro ao carregar ministério.");
                     router.back();
@@ -34,7 +36,7 @@ export default function MinisteryForm() {
                     setLoading(false);
                 }
             };
-            fetchMinistery();
+            fetch();
         }
     }, [id]);
 
@@ -47,10 +49,12 @@ export default function MinisteryForm() {
         const body = {
             name,
             description,
+            type,
+            visibility,
         };
+        console.log(body)
 
         setLoading(true);
-
         try {
             if (isEditing) {
                 await updateMinistery(id!, body);
@@ -68,58 +72,90 @@ export default function MinisteryForm() {
     };
 
     return (
-        <View style={styles.container}>
+        <ScrollView contentContainerStyle={styles.container}>
             <Text style={styles.title}>{isEditing ? "Editar Ministério" : "Novo Ministério"}</Text>
 
             <Text style={styles.label}>Nome do Ministério</Text>
             <TextInput
                 style={styles.input}
-                placeholder="Ex: Ministério de Jovens"
                 value={name}
                 onChangeText={setName}
+                placeholder="Ex: Ministério de Jovens"
             />
 
             <Text style={styles.label}>Descrição</Text>
             <TextInput
                 style={[styles.input, styles.textArea]}
-                placeholder="Ex: Grupo voltado para adolescentes e jovens..."
                 value={description}
                 onChangeText={setDescription}
                 multiline
                 numberOfLines={4}
+                placeholder="Ex: Responsável pelos adolescentes..."
             />
+            <Text style={styles.label}>
+                Tipo{" "}
+                <Text style={styles.tooltip}>ⓘ</Text>
+                <Text style={styles.tooltipText}> Define quais funcionalidades o ministério terá.</Text>
+            </Text>
+            <View style={styles.row}>
+                {MINISTRY_TYPES.map((item) => (
+                    <TouchableOpacity
+                        key={item.value}
+                        style={[styles.chip, type === item.value && styles.chipSelected]}
+                        onPress={() => setType(item.value)}
+                    >
+                        <Text style={styles.chipText}>{item.label}</Text>
+                    </TouchableOpacity>
+                ))}
+            </View>
+
+            <Text style={styles.label}>
+                Visibilidade{" "}
+                <Text style={styles.tooltip}>ⓘ</Text>
+                <Text style={styles.tooltipText}>
+                    {" "}
+                    Define como os usuários podem visualizar ou participar do ministério.
+                </Text>
+            </Text>
+            <View style={styles.row}>
+                {VISIBILITY_OPTIONS.map((v) => (
+                    <TouchableOpacity
+                        key={v.value}
+                        style={[styles.chip, visibility === v.value && styles.chipSelected]}
+                        onPress={() => setVisibility(v.value)}
+                    >
+                        <Text style={styles.chipText}>
+                            {v.label}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
+            </View>
 
             <TouchableOpacity
                 style={[styles.button, loading && styles.buttonDisabled]}
                 onPress={handleSave}
                 disabled={loading}
             >
-                {loading ? (
-                    <ActivityIndicator color="#fff" />
-                ) : (
-                    <Text style={styles.buttonText}>Salvar</Text>
-                )}
+                {loading ? <ActivityIndicator color="#fff"/> : <Text style={styles.buttonText}>Salvar</Text>}
             </TouchableOpacity>
-        </View>
+        </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
         padding: 24,
         backgroundColor: "#fff",
     },
     title: {
-        fontSize: 24,
+        fontSize: 22,
         fontWeight: "bold",
         marginBottom: 24,
-        color: "#222",
     },
     label: {
         fontSize: 16,
-        marginBottom: 8,
-        color: "#444",
+        marginBottom: 4,
+        fontWeight: "500",
     },
     input: {
         borderWidth: 1,
@@ -132,6 +168,27 @@ const styles = StyleSheet.create({
     textArea: {
         height: 100,
         textAlignVertical: "top",
+    },
+    row: {
+        flexDirection: "row",
+        gap: 8,
+        marginBottom: 20,
+        flexWrap: "wrap",
+    },
+    chip: {
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: "#999",
+        backgroundColor: "#f9f9f9",
+    },
+    chipSelected: {
+        backgroundColor: "#1E90FF",
+        borderColor: "#1E90FF",
+    },
+    chipText: {
+        color: "#333",
     },
     button: {
         backgroundColor: "#1E90FF",
@@ -146,5 +203,14 @@ const styles = StyleSheet.create({
     },
     buttonDisabled: {
         opacity: 0.7,
+    },
+    tooltip: {
+        color: "#888",
+        fontSize: 14,
+    },
+    tooltipText: {
+        color: "#888",
+        fontSize: 13,
+        marginTop: 2,
     },
 });

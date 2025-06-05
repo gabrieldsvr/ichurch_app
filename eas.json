@@ -1,23 +1,25 @@
 {
   "cli": {
-    "version": ">= 15.0.10",
+    "version": "16.8.0",
     "appVersionSource": "remote"
   },
   "build": {
-    "development": {
-      "developmentClient": true,
-      "distribution": "internal"
+    "production": {
+      "android": {}
     },
     "preview": {
       "distribution": "internal"
     },
-    "production": {
-      "android": {
-        "buildType": "apk"
-      }
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "./service-account.json"
+      }
+    }
   }
 }

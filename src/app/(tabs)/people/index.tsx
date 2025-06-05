@@ -6,6 +6,7 @@ import {getUsers} from '@/src/api/peopleService';
 import {useAppTheme} from "@/src/contexts/ThemeProvider";
 import {Picker} from "@react-native-picker/picker";
 import api from "@/src/api/api";
+import {PeopleDTO} from "@/src/dto/PeopleDTO";
 export default function PeopleScreen() {
     const theme = useAppTheme().theme;
     const [people, setPeople] = useState<PeopleDTO[]>([]);
@@ -108,6 +109,13 @@ export default function PeopleScreen() {
         router.push({
             pathname: "/people/upsert",
             params: { id },
+        });
+    };
+
+    const handleNewLogin = (id: string, name: string) => {
+        router.push({
+            pathname: "/people/CreateUserModal",
+            params: { id , name},
         });
     };
 
@@ -216,6 +224,7 @@ export default function PeopleScreen() {
                             }
                         >
                             <Menu.Item onPress={() => handleEdit(item.id)} title="Editar" leadingIcon="pencil" />
+                            <Menu.Item onPress={() => handleNewLogin(item.id, item.name)} title="Criar conta" leadingIcon="account-plus" />
                             <Menu.Item onPress={() => toggleStatus(item.id)} title="Inativar" leadingIcon="account-off" />
                         </Menu>
                     </TouchableOpacity>

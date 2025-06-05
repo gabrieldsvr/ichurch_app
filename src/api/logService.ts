@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1374365788181495870/wmUL4yO93ta85QLCCLQm9S9givhYICKx69mfWDhrT2okn2_G38GOVjOJvGV9KH_9Ll1q";
+const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1380157258842771517/uvS1h6PEBCrmjPgcyR65Xp9m4AACcX08l2HYI7cWXqjTCqtePpGnsCpMbxOBTIkj2oPw";
 
 export async function logToDiscord(message: string, level: "INFO" | "WARN" | "ERROR" = "INFO") {
     const colors = {
