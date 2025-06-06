@@ -47,7 +47,6 @@ export default function EventAttendanceScreen() {
 
     const fetchPeople = async () => {
         try {
-            console.log(eventId)
             const response = await api.get(`/community/events/${eventId}/people`);
             const sortedPeople = response.data.sort((a: Person, b: Person) => a.name.localeCompare(b.name));
 

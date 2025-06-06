@@ -1,24 +1,52 @@
-import { Stack } from 'expo-router';
-import { useAppTheme, ThemeProvider } from '@/src/contexts/ThemeProvider';
+import { Stack, useRouter } from "expo-router";
+import { ThemeProvider, useAppTheme } from "@/src/contexts/ThemeProvider";
+import { IconButton } from "react-native-paper";
 
 function MinisteryLayoutContent() {
     const { theme } = useAppTheme();
+    const router = useRouter();
 
     return (
         <Stack
             screenOptions={{
-                headerStyle: { backgroundColor: theme.colors.surface },
-                headerTintColor: theme.colors.onSurface,
+                headerStyle: {
+                    backgroundColor: "#F5F5F5",
+                },
+                headerShadowVisible: false,
+                headerTintColor: theme.colors.primary,
+                headerBackTitle: "", // oculta texto do botão voltar
             }}
         >
-            {/* Mantém a tela principal visível */}
-            <Stack.Screen name="index" options={{ title: "Ministérios" }} />
+            {/* Tela principal ministery */}
+            <Stack.Screen name="index" options={{ headerShown: false }} />
 
-            {/* Oculta o header para o grupo [id] */}
+            {/* Detalhe ministery */}
+            <Stack.Screen
+                name="ministery-detail"
+                options={{
+                    title: "",
+                    headerShown: true,
+                    headerBackTitle: "", // oculta texto do botão voltar
+                }}
+            />
+
+            {/* Rotas de edição */}
+            <Stack.Screen
+                name="upsert-ministery"
+                options={{
+                    title: "Editar Ministério",
+                    headerShown: true,
+                }}
+            />
+            <Stack.Screen
+                name="upsert-cell-group"
+                options={{
+                    title: "Editar Célula",
+                    headerShown: true,
+                }}
+            />
+            {/* Se usar a rota dinâmica [id], defina se precisa de header */}
             <Stack.Screen name="[id]" options={{ headerShown: false }} />
-            <Stack.Screen name="ministery-detail"  />
-            <Stack.Screen name="upsert-ministery"  />
-            <Stack.Screen name="upsert-cell-group"  />
         </Stack>
     );
 }

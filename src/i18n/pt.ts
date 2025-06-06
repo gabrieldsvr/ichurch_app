@@ -64,5 +64,10 @@ export default {
     account_created: 'Conta criada com sucesso!',
     account_creation_error: 'Erro ao criar conta',
     info_email_new_account: 'Informe o e-mail da nova conta',
+    no_members: 'Nenhum membro encontrado',
+    select_members: 'Selecionar Membros',
+    manage_members: 'Gerenciar Membros',
+    members_updated: 'Membros atualizados com sucesso!',
+    ministery_deleted: 'Ministério excluído com sucesso!',
 
 };

@@ -1,18 +1,21 @@
-import { Stack } from "expo-router";
-import { useTheme } from "react-native-paper";
+import { Stack, useRouter } from "expo-router";
+import { useTheme, IconButton } from "react-native-paper";
 import { ThemeProvider } from "@/src/contexts/ThemeProvider";
 
 export default function PeopleLayout() {
     const theme = useTheme();
+    const router = useRouter();
 
     return (
         <ThemeProvider>
             <Stack
                 screenOptions={{
                     headerStyle: {
-                        backgroundColor: '#F5F5F5',
+                        backgroundColor: "#F5F5F5",
                     },
                     headerShadowVisible: false,
+                    headerTintColor: theme.colors.primary,
+                    headerBackTitle: "", // oculta texto do botão voltar
                 }}
             >
                 <Stack.Screen
@@ -21,7 +24,7 @@ export default function PeopleLayout() {
                 />
                 <Stack.Screen
                     name="upsert"
-                    options={{ title: "" /* ou "" se quiser vazio */ }}
+                    options={{ title: "" }}
                 />
                 <Stack.Screen
                     name="upload"
@@ -29,11 +32,11 @@ export default function PeopleLayout() {
                 />
                 <Stack.Screen
                     name="people-details"
-                    options={{ title: ""}}
-                />
-                <Stack.Screen
-                    name="CreateUserModal"
-                    options={{ title: "Novo Login" }}
+                    options={{
+                        title: "",
+                        headerShown: true,
+                        headerBackTitle: "", // oculta texto do botão voltar
+                    }}
                 />
             </Stack>
         </ThemeProvider>

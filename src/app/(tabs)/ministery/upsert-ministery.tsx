@@ -1,15 +1,24 @@
-import {useEffect, useState} from "react";
-import {ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View,} from "react-native";
+import { useEffect, useState } from "react";
+import {
+    ActivityIndicator,
+    Alert,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
-import {createMinistery, getMinisteryById, updateMinistery} from "@/src/api/ministeryService";
-import {useLocalSearchParams, useRouter} from "expo-router";
-import {MinistryType} from "@/src/types/MinisteryType";
-import {MINISTRY_TYPES} from "@/src/enum/MINISTRY_TYPES";
-import {MinistryVisibility} from "@/src/types/MinistryVisibility";
-import {VISIBILITY_OPTIONS} from "@/src/enum/VISIBILITY_OPTIONS";
+import { createMinistery, getMinisteryById, updateMinistery } from "@/src/api/ministeryService";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { MinistryType } from "@/src/types/MinisteryType";
+import { MINISTRY_TYPES } from "@/src/enum/MINISTRY_TYPES";
+import { MinistryVisibility } from "@/src/types/MinistryVisibility";
+import { VISIBILITY_OPTIONS } from "@/src/enum/VISIBILITY_OPTIONS";
 
 export default function MinisteryForm() {
-    const {id} = useLocalSearchParams<{ id?: string }>();
+    const { id } = useLocalSearchParams<{ id?: string }>();
     const isEditing = !!id;
     const router = useRouter();
 
@@ -20,14 +29,14 @@ export default function MinisteryForm() {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        if (isEditing) {
+        if (isEditing && id) {
             const fetch = async () => {
                 try {
                     setLoading(true);
-                    const data = await getMinisteryById(id!);
+                    const data = await getMinisteryById(id);
                     setName(data.name);
-                    setDescription(data.description);
                     setType(data.type);
+                    setDescription(data.description);
                     setVisibility(data.visibility);
                 } catch {
                     Alert.alert("Erro", "Erro ao carregar ministério.");
@@ -52,12 +61,11 @@ export default function MinisteryForm() {
             type,
             visibility,
         };
-        console.log(body)
 
         setLoading(true);
         try {
-            if (isEditing) {
-                await updateMinistery(id!, body);
+            if (isEditing && id) {
+                await updateMinistery(id, body);
                 Alert.alert("Sucesso", "Ministério atualizado com sucesso!");
             } else {
                 await createMinistery(body);
@@ -92,6 +100,7 @@ export default function MinisteryForm() {
                 numberOfLines={4}
                 placeholder="Ex: Responsável pelos adolescentes..."
             />
+
             <Text style={styles.label}>
                 Tipo{" "}
                 <Text style={styles.tooltip}>ⓘ</Text>
@@ -104,7 +113,7 @@ export default function MinisteryForm() {
                         style={[styles.chip, type === item.value && styles.chipSelected]}
                         onPress={() => setType(item.value)}
                     >
-                        <Text style={styles.chipText}>{item.label}</Text>
+                        <Text style={[styles.chipText, type === item.value && {color: 'white'}]}>{item.label}</Text>
                     </TouchableOpacity>
                 ))}
             </View>
@@ -124,7 +133,7 @@ export default function MinisteryForm() {
                         style={[styles.chip, visibility === v.value && styles.chipSelected]}
                         onPress={() => setVisibility(v.value)}
                     >
-                        <Text style={styles.chipText}>
+                        <Text style={[styles.chipText, visibility === v.value && {color: 'white'}]}>
                             {v.label}
                         </Text>
                     </TouchableOpacity>
@@ -136,7 +145,7 @@ export default function MinisteryForm() {
                 onPress={handleSave}
                 disabled={loading}
             >
-                {loading ? <ActivityIndicator color="#fff"/> : <Text style={styles.buttonText}>Salvar</Text>}
+                {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Salvar</Text>}
             </TouchableOpacity>
         </ScrollView>
     );

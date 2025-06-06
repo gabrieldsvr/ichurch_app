@@ -14,8 +14,6 @@ export const createUser = async (userData: FormData) => {
 
 export const updateUser = async (id: string, userData: FormData) => {
     try {
-        console.log(id)
-        console.log(FormData)
         const response = await api.put(`/community/people/${id}`, userData, {
             headers: { "Content-Type": "multipart/form-data" },
         });

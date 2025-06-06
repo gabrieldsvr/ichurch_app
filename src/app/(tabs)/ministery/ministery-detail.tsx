@@ -1,211 +1,430 @@
-import { useEffect, useState, useCallback } from "react";
-import {
-    View,
-    Text,
-    ActivityIndicator,
-    StyleSheet,
-    Alert,
-    TouchableOpacity,
-    FlatList,
-    RefreshControl,
-} from "react-native";
-import { useLocalSearchParams, router, useFocusEffect } from "expo-router";
-import { getMinisteryById } from "@/src/api/ministeryService";
-import { MinisteryDTO } from "@/src/dto/MinisteryDTO";
-import { Ionicons } from "@expo/vector-icons";
-import { getCellGroupsByMinistery } from "@/src/api/cellGroupService";
-import {Button} from "react-native-paper";
+import React, {useEffect, useState} from "react";
+import {Alert, ScrollView, StyleSheet, View, Modal, TextInput} from "react-native";
+import {Button, Divider, List, Text, useTheme, Avatar, Checkbox} from "react-native-paper";
+import {useLocalSearchParams, useRouter} from "expo-router";
+import {deleteMinistery, getMinisteryById, updateMinisteryMembers} from "@/src/api/ministeryService";
+import {useTranslation} from "@/src/hook/useTranslation";
+import {logToDiscord} from "@/src/api/logService";
+import {MaterialCommunityIcons} from "@expo/vector-icons";
+import {MinistryMetadata} from "@/src/constants/ministryMetadata";
+import {useSnackbar} from "@/src/contexts/SnackbarProvider";
+import {Visibility} from "@/src/dto/MinisteryDTO";
+import {getUsers} from "@/src/api/peopleService";
 
-export default function MinisteryDetail() {
-    const { id } = useLocalSearchParams<{ id: string }>();
-    console.log(id)
-    const [ministery, setMinistery] = useState<MinisteryDTO | null>(null);
+interface Member {
+    id: string;
+    name: string;
+    role: "LEADER" | "AUX" | "MEMBER";
+    photo?: string | null;
+}
+
+interface Person {
+    id: string;
+    name: string;
+    description: string;
+    photo: string;
+}
+
+interface MinisteryDetail {
+    id: string;
+    name: string;
+    description?: string;
+    type: Visibility;
+    members: Member[];
+}
+
+const roleLabels: Record<string, string> = {
+    LEADER: "Líder",
+    AUX: "Auxiliar",
+    MEMBER: "Membro",
+};
+
+export default function MinisteryDetailScreen() {
+    const {id} = useLocalSearchParams();
+    const theme = useTheme();
+    const {t} = useTranslation();
+    const {showMessage} = useSnackbar();
+    const router = useRouter();
+
+    const [ministery, setMinistery] = useState<MinisteryDetail | null>(null);
     const [loading, setLoading] = useState(true);
-    const [refreshing, setRefreshing] = useState(false);
-    const [cellGroups, setCellGroups] = useState<{ id: string; name: string }[]>([]);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [allUsers, setAllUsers] = useState<Person[]>([]); // Lista completa de pessoas
+    const [selectedMembers, setSelectedMembers] = useState(new Set()); // IDs selecionados
+    const [deleting, setDeleting] = useState(false);
+    const [search, setSearch] = useState("");
+    useEffect(() => {
+        if (!id) return;
 
-    const fetchData = async () => {
+        async function fetchMinistery() {
+            try {
+                setLoading(true);
+                const response = await getMinisteryById(id as string);
+                setMinistery(response);
+                setSelectedMembers(new Set(response.members.map((m) => m.id)));
+            } catch (error) {
+                Alert.alert(t("error"), t("error_loading_ministery"));
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        fetchMinistery();
+    }, [id]);
+
+    const onDelete = () => {
+        Alert.alert(
+            t("delete"),
+            t("confirm_delete_ministery"),
+            [
+                {
+                    text: t("cancel"),
+                    style: "cancel",
+                },
+                {
+                    text: t("delete"),
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            setDeleting(true);
+                            await deleteMinistery(id as string);
+                            showMessage(t("ministery_deleted"));
+                            router.replace("/ministery");
+                        } catch (error: any) {
+                            Alert.alert(t("error"), t("error_deleting_ministery"));
+                            await logToDiscord(
+                                `❌ Erro ao deletar ministério: ${error.message}`,
+                                "ERROR"
+                            );
+                        } finally {
+                            setDeleting(false);
+                        }
+                    },
+                },
+            ]
+        );
+    };
+
+    const onAddMember = () => {
+        router.push({
+            pathname: "/ministery/upsert-ministery",
+        });
+    };
+
+    const loadAllUsers = async () => {
         try {
-            if (!id) return;
+            const response = await getUsers('?status=active');
+            const people: Person[] = response.data.map((user: any) => ({
+                id: user.id,
+                name: user.name,
+                description: user.ministryName ?? "No ministry", // ajuste conforme API
+                photo: user?.photo ? `https://ichurch-storage.s3.us-east-1.amazonaws.com/${user?.photo}` : "https://randomuser.me/api/portraits/lego/1.jpg",
 
-            const data = await getMinisteryById(id);
-            setMinistery(data);
-
-            const cells = await getCellGroupsByMinistery(id);
-            setCellGroups(cells);
-
-        } catch (error) {
-            console.error("Erro ao carregar ministério:", error);
-            Alert.alert("Erro", "Não foi possível carregar o ministério.");
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
+            }));
+            setAllUsers(response.data);
+        } catch (e) {
+            Alert.alert(t("error"), t("error_loading_users"));
         }
     };
 
-    useFocusEffect(
-        useCallback(() => {
-            fetchData();
-        }, [id])
+    const openManageMembers = () => {
+        loadAllUsers();
+        setModalVisible(true);
+    };
+
+    // Alterna seleção do membro
+    const toggleSelection = (userId:string) => {
+        const newSet = new Set(selectedMembers);
+        if (newSet.has(userId)) {
+            newSet.delete(userId);
+        } else {
+            newSet.add(userId);
+        }
+        setSelectedMembers(newSet);
+    };
+
+    // Salva os membros selecionados
+    const saveMembers = async () => {
+        if (!id) {
+            Alert.alert(t("error"), t("ministery_not_found"));
+            return;
+        }
+
+        try {
+            // Passa o id primeiro, depois o array de membros
+            await updateMinisteryMembers(id, Array.from(selectedMembers));
+
+            Alert.alert(t("success"), t("members_updated"));
+            setMinistery(old => {
+                if (!old) return old;
+
+                return {
+                    ...old,
+                    members: allUsers.filter(user => selectedMembers.has(user.id)),
+                };
+            });
+            setModalVisible(false);
+        } catch (e) {
+            Alert.alert(t("error"), t("error_updating_members"));
+        }
+    };
+
+
+    const onEdit = () => {
+        router.push({
+            pathname: "/ministery/upsert-ministery",
+            params: {id},
+        });
+    };
+
+    const filteredUsers = allUsers.filter(user =>
+        user.name.toLowerCase().includes(search.toLowerCase()) ||
+        (user.description ? user.description.toLowerCase().includes(search.toLowerCase()) : false)
     );
 
-    const onRefresh = () => {
-        setRefreshing(true);
-        fetchData();
-    };
 
-    const handleEditCell = (cellId: string) => {
-        router.push({
-            pathname: "/ministery/upsert-cell-group",
-            params: {
-                id: id as string,
-                cellId: cellId,
-            },
-        });
-    };
-
-
-    const handleDeleteCell = (cellId: string) => {
-        Alert.alert("Excluir célula", `Tem certeza que deseja excluir a célula ${cellId}?`);
-    };
-
-    const handleAddCell = () => {
-        router.push({
-            pathname: "/ministery/upsert-cell-group",
-            params: { id: id as string },
-        });
-
-    };
-
-
-
-    if (loading && !refreshing) {
-        return <ActivityIndicator style={styles.loader} size="large" />;
+    if (loading) {
+        return (
+            <View style={[styles.loadingContainer, {backgroundColor: theme.colors.background}]}>
+                <Text>{t("loading")}...</Text>
+            </View>
+        );
     }
 
+    if (!ministery) {
+        return (
+            <View style={[styles.loadingContainer, {backgroundColor: theme.colors.background}]}>
+                <Text>{t("ministery_not_found")}</Text>
+            </View>
+        );
+    }
+
+    const key = ministery.type as keyof typeof MinistryMetadata;
+    const meta = MinistryMetadata[key] || MinistryMetadata["outro"];
+
     return (
-        <FlatList
-            data={cellGroups}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
-            refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-            ListHeaderComponent={
-                <View style={styles.container}>
-                    <View style={styles.headerRow}>
-                        <View style={{ flex: 1 }}>
-                            <Text style={styles.title}>{ministery?.name}</Text>
-                            {ministery?.description ? (
-                                <Text style={styles.description}>{ministery.description}</Text>
-                            ) : (
-                                <Text style={styles.noDescription}>Sem descrição cadastrada.</Text>
-                            )}
-                        </View>
-                        <TouchableOpacity
-                            style={styles.editButton}
-                            onPress={() => router.push({
-                                pathname: "/ministery/upsert-ministery",
-                                params: { id },
-                            })}
-                        >
-                            <Ionicons name="pencil" size={20} color="#555" />
-                        </TouchableOpacity>
+        <>
+            <ScrollView style={[styles.container, {backgroundColor: theme.colors.background}]}>
+                <View style={styles.header}>
+                    <View style={[styles.iconContainer, {backgroundColor: meta.color + "33"}]}>
+                        <MaterialCommunityIcons name={meta.icon} size={80} color={meta.color}/>
                     </View>
-
-                    <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>Células</Text>
-                        <TouchableOpacity onPress={handleAddCell}>
-                            <Ionicons name="add-circle-outline" size={24} color="#1E90FF" />
-                        </TouchableOpacity>
+                    <View style={styles.headerText}>
+                        <Text style={[styles.title, {color: theme.colors.onBackground}]}>{ministery.name}</Text>
+                        {ministery.description ? (
+                            <Text style={[styles.description, {color: theme.colors.onBackground}]}>
+                                {ministery.description}
+                            </Text>
+                        ) : null}
                     </View>
-
-                    {cellGroups.length === 0 && (
-                        <Text style={styles.noDescription}>Nenhuma célula cadastrada.</Text>
-                    )}
                 </View>
-            }
-            renderItem={({ item }) => (
-                <TouchableOpacity style={styles.cellItem} onPress={() => handleEditCell(item.id)}>
-                    <Text style={styles.cellName}>{item.name}</Text>
-                    <View style={styles.cellActions}>
+
+                <View style={styles.actionButtons}>
+                    <Button mode="outlined" onPress={onEdit} style={styles.editButton}>
+                        {t("edit")}
+                    </Button>
+                    <Button
+                        mode="contained"
+                        onPress={onDelete}
+                        loading={deleting}
+                        style={styles.deleteButton}
+                    >
+                        {t("delete")}
+                    </Button>
+                </View>
+
+                <Divider style={{marginVertical: 12}}/>
+
+                <Text style={[styles.sectionTitle, {color: theme.colors.onBackground}]}>
+                    {t("members")}
+                </Text>
+                <Button mode="contained" onPress={openManageMembers} style={{ marginTop: 12 }}>
+                    {t("manage_members")}
+                </Button>
+
+                {ministery.members.length === 0 ? (
+                    <Text style={{padding: 12, color: theme.colors.onSurfaceVariant}}>
+                        {t("no_members")}
+                    </Text>
+                ) : (
+
+                    <List.Section>
+                        {ministery.members.length === 0 ? (
+                            <Text style={{padding: 12, color: theme.colors.onSurfaceVariant}}>
+                                {t("no_members")}
+                            </Text>
+                        ) : (
+                            ministery.members.map((member) => (
+                                <List.Item
+                                    key={member.id}
+                                    title={member.name}
+                                    description={roleLabels[member.role] || member.role}
+                                    onPress={() =>
+                                        router.push({
+                                            pathname: "/people/people-details",
+                                            params: {id: member.id},
+                                        })
+                                    }
+                                    left={(props) =>
+                                        member.photo ? (
+                                            <Avatar.Image
+                                                {...props}
+                                                source={{uri: `https://ichurch-storage.s3.us-east-1.amazonaws.com/${member.photo}`}}
+                                                size={40}
+                                            />
+                                        ) : (
+                                            <List.Icon {...props} icon="account"/>
+                                        )
+                                    }
+                                    right={(props) => <List.Icon {...props} icon="chevron-right"/>}
+                                    style={{
+                                        borderBottomWidth: 1,
+                                        borderBottomColor: theme.colors.outline,
+                                        paddingVertical: 4,
+                                        paddingHorizontal: 0,
+                                    }}
+                                />
+                            ))
+                        )}
+                    </List.Section>
+                )}
+
+
+            </ScrollView>
+
+            {/* Modal para gerenciar membros */}
+            <Modal visible={modalVisible} animationType="slide" onRequestClose={() => setModalVisible(false)}>
+                <View style={[styles.modalContainer, { backgroundColor: theme.colors.background }]}>
+                    <Text style={[styles.modalTitle, { color: theme.colors.onBackground }]}>
+                        {t("select_members")}
+                    </Text>
+                    <TextInput
+                        placeholder={t("search") || "Search"}
+                        value={search}
+                        onChangeText={setSearch}
+                        style={[
+                            styles.searchInput,
+                            {borderColor: theme.colors.outline, color: theme.colors.onBackground},
+                        ]}
+                        placeholderTextColor={theme.colors.outline}
+                        autoCorrect={false}
+                        autoCapitalize="none"
+                    />
+                    <ScrollView>
+                        {filteredUsers.map((user) => (
+                            <List.Item
+                                key={user.id}
+                                title={user.name}
+                                left={() =>
+                                    user.photo ? (
+                                        <Avatar.Image
+                                            size={40}
+                                            source={{ uri: `https://ichurch-storage.s3.us-east-1.amazonaws.com/${user.photo}` }}
+                                        />
+                                    ) : (
+                                        <Avatar.Icon size={40} icon="account" />
+                                    )
+                                }
+                                right={() => (
+                                    <Checkbox
+                                        status={selectedMembers.has(user.id) ? "checked" : "unchecked"}
+                                        onPress={() => toggleSelection(user.id)}
+                                    />
+                                )}
+                            />
+                        ))}
+                    </ScrollView>
+                    <View style={styles.modalButtons}>
+                        <Button onPress={() => setModalVisible(false)}>{t("cancel")}</Button>
+                        <Button mode="contained" onPress={saveMembers}>{t("save")}</Button>
                     </View>
-                </TouchableOpacity>
-
-
-
-            )}
-        />
+                </View>
+            </Modal>
+        </>
     );
 }
 
 const styles = StyleSheet.create({
-    loader: {
+    container: {
+        flex: 1,
+        paddingHorizontal: 24,
+    },
+    loadingContainer: {
         flex: 1,
         justifyContent: "center",
+        alignItems: "center",
     },
-    container: {
-        paddingTop: 20,
-    },
-    headerRow: {
+    header: {
         flexDirection: "row",
-        alignItems: "flex-start",
-        marginBottom: 24,
+        alignItems: "center",
+        marginBottom: 20,
+    },
+    iconContainer: {
+        width: 80,
+        height: 80,
+        borderRadius: 16,
+        justifyContent: "center",
+        alignItems: "center",
+        marginRight: 20,
+    },
+    headerText: {
+        flex: 1,
     },
     title: {
-        fontSize: 24,
+        fontSize: 28,
         fontWeight: "bold",
-        color: "#222",
     },
     description: {
-        fontSize: 16,
-        color: "#555",
-        marginTop: 4,
+        marginTop: 8,
+        fontSize: 14,
     },
-    noDescription: {
-        fontSize: 15,
-        fontStyle: "italic",
-        color: "#888",
-        marginTop: 4,
-    },
-    editButton: {
-        padding: 8,
-        borderRadius: 6,
-        backgroundColor: "#eee",
-        marginLeft: 8,
-    },
-    sectionHeader: {
+    actionButtons: {
         flexDirection: "row",
         justifyContent: "space-between",
-        alignItems: "center",
         marginBottom: 12,
+    },
+    editButton: {
+        flex: 1,
+        marginRight: 10,
+    },
+    deleteButton: {
+        backgroundColor: "#D32F2F",
+        flex: 1,
     },
     sectionTitle: {
         fontSize: 18,
-        fontWeight: "bold",
+        fontWeight: "600",
+        marginVertical: 8,
     },
-    cellItem: {
+    buttonRow: {
+        paddingHorizontal: 24,
+        flexDirection: "row",
+        justifyContent: "center",
+        paddingVertical: 10,
+    },
+    roleChip: {
+        alignSelf: "center",
+    },
+    modalContainer: {
+        flex: 1,
+        padding: 16,
+    },
+    modalTitle: {
+        fontSize: 22,
+        fontWeight: "bold",
+        marginBottom: 12,
+    },
+    modalButtons: {
         flexDirection: "row",
         justifyContent: "space-between",
-        alignItems: "center",
-        paddingVertical: 14,
-        paddingHorizontal: 12,
-        borderWidth: 1,               // 👈 adiciona contorno
-        borderColor: "#ddd",          // 👈 cor sutil
+        paddingVertical: 12,
+    },
+    searchInput: {
+        marginTop: 12,
+        height: 44,
+        borderWidth: 1,
         borderRadius: 8,
-        backgroundColor: "#fff",
-        marginBottom: 12,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 1.5,
-        elevation: 1, // Para Android
-    },
-    cellName: {
+        paddingHorizontal: 12,
         fontSize: 16,
-    },
-    cellActions: {
-        flexDirection: "row",
-        alignItems: "center",
-    },
+    }
 });

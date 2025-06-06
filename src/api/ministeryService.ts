@@ -3,7 +3,6 @@ import {MinisteryDTO} from "@/src/dto/MinisteryDTO";
 
 export const createMinistery = async (ministeryData: MinisteryDTO) => {
     try {
-        console.log(ministeryData)
         const response = await api.post('/ministry/ministries', ministeryData, {
             headers: { "Content-Type": "application/json" }
         });
@@ -55,4 +54,8 @@ export const deleteMinistery = async (id: string) => {
         console.error("Erro ao deletar ministério:", error);
         throw error;
     }
+};
+
+export const updateMinisteryMembers = async (ministeryId: string, memberIds: string[]) => {
+    return api.patch(`/ministry/ministries/${ministeryId}/members`, { members: memberIds });
 };
