@@ -139,7 +139,6 @@ export default function MinisteryForm() {
                     </TouchableOpacity>
                 ))}
             </View>
-
             <TouchableOpacity
                 style={[styles.button, loading && styles.buttonDisabled]}
                 onPress={handleSave}
