@@ -36,3 +36,26 @@ export const getUsers = async (statusParam: string = "") => {
         throw error;
     }
 };
+
+
+// Buscar usuário por ID
+export const getUserById = async (id: string) => {
+    try {
+        const response = await api.get(`/community/people/${id}`);
+        return response; // ou response.data se preferir só os dados
+    } catch (error) {
+        console.error(`Erro ao buscar usuário ID ${id}:`, error);
+        throw error;
+    }
+};
+
+// Deletar usuário por ID (exclusão lógica ou física, depende da API)
+export const deleteUser = async (id: string) => {
+    try {
+        const response = await api.delete(`/community/people/${id}`);
+        return response;
+    } catch (error) {
+        console.error(`Erro ao deletar usuário ID ${id}:`, error);
+        throw error;
+    }
+};

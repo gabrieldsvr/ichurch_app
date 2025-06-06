@@ -47,5 +47,16 @@ export default {
     regular_attendee: 'Frequentador',
     member: 'Membro',
     type_member: 'Tipo de Membro',
+    filter_by: 'Filtrar por',
+    people: 'Pessoas',
+    new_person: 'Nova Pessoa',
+    search: 'Pesquisar',
+    error_loading_user: 'Erro ao carregar usuário',
+    user_not_found: 'Usuário não encontrado',
+    contact_details: 'Detalhes de Contato',
+    no_data: 'Nenhum dado disponível',
+    no_ministries: 'Nenhum ministério encontrado',
+    confirm_delete_user: 'Tem certeza que deseja excluir este usuário?',
+    create_login: 'Criar Login',
 
 };

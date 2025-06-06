@@ -97,15 +97,17 @@ export default function RegisterMemberScreen() {
 
             const sanitizedData: Record<string, string> = {
                 name: data.name || "",
-                phone: data.phone || "",
-                birth_date: data.birthDate || "",  // transformando birthDate para birth_date aqui
+                birth_date: data.birthDate || "",
                 email: data.email || "",
+                phone: data.phone || "",
                 address: data.address || "",
                 type: data.type || "member",
             };
 
             Object.entries(sanitizedData).forEach(([key, value]) => {
-                formData.append(key, value);
+                if (value !== undefined && value !== null && value !== "") {
+                    formData.append(key, value);
+                }
             });
 
             if (imageUri) {
@@ -248,7 +250,6 @@ export default function RegisterMemberScreen() {
                     control={control}
                     name="email"
                     rules={{
-                        required: t("requiredField"),
                         pattern: {
                             value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
                             message: t("invalidEmail"),
@@ -278,7 +279,12 @@ export default function RegisterMemberScreen() {
                 <Controller
                     control={control}
                     name="phone"
-                    rules={{required: t("requiredField")}}
+                    rules={{
+                        pattern: {
+                            value: /^\+?[\d\s()-]{7,}$/,
+                            message: t("invalidPhone"),
+                        },
+                    }}
                     render={({field: {onChange, onBlur, value}}) => (
                         <TextInput
                             label={t("phone")}
@@ -315,8 +321,6 @@ export default function RegisterMemberScreen() {
                     )}
                 />
             </ScrollView>
-
-
             {/* Buttons fixados no rodapé */}
             <View style={[styles.buttonRow, {backgroundColor: theme.colors.background}]}>
                 <Button mode="contained" onPress={handleSubmit(onSave)} style={styles.saveButton} loading={isLoading}

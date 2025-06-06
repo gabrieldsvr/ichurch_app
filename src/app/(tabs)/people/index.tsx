@@ -1,15 +1,9 @@
-import React, { useState } from "react";
-import {
-    View,
-    StyleSheet,
-    FlatList,
-    TextInput,
-    TouchableOpacity,
-    Image,
-    Text,
-} from "react-native";
-import { Button, IconButton, useTheme } from "react-native-paper";
+import React, {useCallback, useState} from "react";
+import {ActivityIndicator, FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View,} from "react-native";
+import {Button, useTheme} from "react-native-paper";
 import {router, useFocusEffect} from "expo-router";
+import {getUsers} from "@/src/api/peopleService"; // importe sua função real
+import {useTranslation} from "@/src/hook/useTranslation";
 
 interface Person {
     id: string;
@@ -18,50 +12,52 @@ interface Person {
     avatar: string;
 }
 
-const peopleData: Person[] = [
-    {
-        id: "1",
-        name: "Sowe Name",
-        description: "Ministry",
-        avatar:
-            "https://randomuser.me/api/portraits/women/68.jpg",
-    },
-    {
-        id: "2",
-        name: "Corise",
-        description: "Some Non",
-        avatar:
-            "https://randomuser.me/api/portraits/women/72.jpg",
-    },
-    {
-        id: "3",
-        name: "Mawe Name",
-        description: "Minn Non",
-        avatar:
-            "https://randomuser.me/api/portraits/women/65.jpg",
-    },
-    {
-        id: "4",
-        name: "Mowy Name",
-        description: "Reme Recr",
-        avatar:
-            "https://randomuser.me/api/portraits/women/66.jpg",
-    },
-    {
-        id: "5",
-        name: "Soblietiom",
-        description: "Creme Rem",
-        avatar:
-            "https://randomuser.me/api/portraits/women/75.jpg",
-    },
-];
-
 export default function PeopleListScreen() {
     const theme = useTheme();
+    const {t} = useTranslation();
 
-    const [filterActive, setFilterActive] = useState<"filter" | "ministry" | "role">("filter");
+    const [filterActive, setFilterActive] = useState<"filter">(
+        "filter"
+    );
     const [search, setSearch] = useState("");
+    const [peopleData, setPeopleData] = useState<Person[]>([]);
+    const [loading, setLoading] = useState(false);
 
+    // Busca dados sempre que a tela ganha foco
+    useFocusEffect(
+        useCallback(() => {
+            let isActive = true;
+            const fetchPeople = async () => {
+                setLoading(true);
+                try {
+                    const response = await getUsers('?status=active')
+                    if (isActive && response?.data) {
+                        // Transforme os dados recebidos para o formato esperado, se necessário
+                        const people: Person[] = response.data.map((user: any) => ({
+                            id: user.id,
+                            name: user.name,
+                            description: user.ministryName ?? "No ministry", // ajuste conforme API
+                            avatar: user?.photo ? `https://ichurch-storage.s3.us-east-1.amazonaws.com/${user?.photo}` : "https://randomuser.me/api/portraits/lego/1.jpg",
+
+                        }));
+                        setPeopleData(people);
+                    }
+                } catch (error) {
+                    console.error("Erro ao carregar pessoas:", error);
+                } finally {
+                    if (isActive) setLoading(false);
+                }
+            };
+
+            fetchPeople();
+
+            return () => {
+                isActive = false;
+            };
+        }, [])
+    );
+
+    // Filtro simples local
     const filteredPeople = peopleData.filter(
         (p) =>
             p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -69,102 +65,88 @@ export default function PeopleListScreen() {
     );
 
     return (
-        <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-            <Text style={styles.headerTitle}>People <Text style={styles.headerSubtitle}>/ Members</Text></Text>
+        <View style={[styles.container, {backgroundColor: theme.colors.background}]}>
+            <Text style={[styles.headerTitle, {color: theme.colors.onBackground}]}>
+                {t("people")}{" "}
+                <Text style={[styles.headerSubtitle, {color: theme.colors.onSurfaceVariant}]}>
+                    / {t("members")}
+                </Text>
+            </Text>
 
             <TextInput
-                placeholder="Search"
+                placeholder={t("search") || "Search"}
                 value={search}
                 onChangeText={setSearch}
-                style={[styles.searchInput, { borderColor: theme.colors.disabled }]}
-                placeholderTextColor={theme.colors.disabled}
+                style={[
+                    styles.searchInput,
+                    {borderColor: theme.colors.outline, color: theme.colors.onBackground},
+                ]}
+                placeholderTextColor={theme.colors.outline}
+                autoCorrect={false}
+                autoCapitalize="none"
             />
 
-            {/* Filtros */}
             <View style={styles.filtersRow}>
-                <TouchableOpacity
-                    style={[styles.filterTab, filterActive === "filter" && styles.filterTabActive]}
-                    onPress={() => setFilterActive("filter")}
-                >
-                    <Text style={[styles.filterText, filterActive === "filter" && styles.filterTextActive]}>
-                        Filter by
-                    </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                    style={[styles.filterTab, filterActive === "ministry" && styles.filterTabActive]}
-                    onPress={() => setFilterActive("ministry")}
-                >
-                    <Text style={[styles.filterText, filterActive === "ministry" && styles.filterTextActive]}>
-                        Ministry
-                    </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                    style={[styles.filterTab, filterActive === "role" && styles.filterTabActive]}
-                    onPress={() => setFilterActive("role")}
-                >
-                    <Text style={[styles.filterText, filterActive === "role" && styles.filterTextActive]}>
-                        Role
-                    </Text>
-                </TouchableOpacity>
-
-                <View style={{ flex: 1 }} />
+                <View style={{flex: 1}}/>
                 <Button
                     mode="contained"
-                    onPress={() => {
-                        router.push("/people/upsert");
-                    }}
+                    onPress={() => router.push("/people/upsert")}
                     compact
-                    contentStyle={{ paddingVertical: 4, paddingHorizontal: 12 }}
+                    contentStyle={{paddingVertical: 4, paddingHorizontal: 8}}
                 >
-                    Add New Person
+                    {t("new_person")}
                 </Button>
             </View>
 
-            {/* Lista de pessoas */}
-            <FlatList
-                data={filteredPeople}
-                keyExtractor={(item) => item.id}
-                style={{ marginTop: 16 }}
-                renderItem={({ item }) => (
-                    <View style={[styles.personCard, { backgroundColor: theme.colors.surface }]}>
-                        <Image source={{ uri: item.avatar }} style={styles.avatar} />
-
-                        <View style={styles.personInfo}>
-                            <Text style={[styles.personName, { color: theme.colors.onSurface }]}>
-                                {item.name}
-                            </Text>
-                            <Text style={[styles.personDescription, { color: theme.colors.onSurfaceVariant }]}>
-                                {item.description}
-                            </Text>
-                        </View>
-
-                        <IconButton
-                            icon="account-circle-outline"
-                            size={28}
-                            onPress={() => alert(`Profile: ${item.name}`)}
-                            style={styles.profileButton}
-                            color={theme.colors.primary}
-                        />
-                    </View>
-                )}
-            />
-
+            {loading ? (
+                <ActivityIndicator
+                    size="large"
+                    color={theme.colors.primary}
+                    style={{marginTop: 20}}
+                />
+            ) : (
+                <FlatList
+                    data={filteredPeople}
+                    keyExtractor={(item) => item.id}
+                    style={{marginTop: 16}}
+                    keyboardShouldPersistTaps="handled"
+                    renderItem={({item}) => (
+                        <TouchableOpacity
+                            style={[styles.personCard, {backgroundColor: theme.colors.surface}]}
+                            onPress={() =>     router.push({
+                                pathname: "/people/people-details",
+                                params: { id: item.id},
+                            })}
+                            activeOpacity={0.7}
+                        >
+                            <Image
+                                source={{uri: item.avatar}}
+                                style={styles.avatar}
+                            />
+                            <View style={styles.personInfo}>
+                                <Text style={[styles.personName, {color: theme.colors.onSurface}]}>
+                                    {item.name}
+                                </Text>
+                                <Text style={[styles.personDescription, {color: theme.colors.onSurfaceVariant}]}>
+                                    {item.description}
+                                </Text>
+                            </View>
+                        </TouchableOpacity>
+                    )}
+                />
+            )}
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, paddingHorizontal: 16, paddingTop: 40 },
+    container: {flex: 1, paddingHorizontal: 16, paddingTop: 40},
     headerTitle: {
         fontSize: 28,
         fontWeight: "bold",
-        color: "#000",
     },
     headerSubtitle: {
         fontWeight: "normal",
-        color: "#888",
     },
     searchInput: {
         marginTop: 12,
@@ -185,16 +167,8 @@ const styles = StyleSheet.create({
         borderBottomWidth: 2,
         borderBottomColor: "transparent",
     },
-    filterTabActive: {
-        borderBottomColor: "#3B82F6",
-    },
     filterText: {
         fontSize: 16,
-        color: "#000",
-    },
-    filterTextActive: {
-        color: "#3B82F6",
-        fontWeight: "bold",
     },
     personCard: {
         flexDirection: "row",
@@ -205,7 +179,7 @@ const styles = StyleSheet.create({
         elevation: 2,
         shadowColor: "#000",
         shadowOpacity: 0.1,
-        shadowOffset: { width: 0, height: 1 },
+        shadowOffset: {width: 0, height: 1},
         shadowRadius: 4,
     },
     avatar: {
@@ -227,13 +201,5 @@ const styles = StyleSheet.create({
     },
     profileButton: {
         marginLeft: 12,
-    },
-    bottomNav: {
-        height: 60,
-        borderTopWidth: 1,
-        flexDirection: "row",
-        justifyContent: "space-around",
-        alignItems: "center",
-        marginTop: 10,
     },
 });
