@@ -58,5 +58,6 @@ export default {
     no_ministries: 'Nenhum ministério encontrado',
     confirm_delete_user: 'Tem certeza que deseja excluir este usuário?',
     create_login: 'Criar Login',
+    user_create_success:'Usuario cadastrado com sucesso!'
 
 };

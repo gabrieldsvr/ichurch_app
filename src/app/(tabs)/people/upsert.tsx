@@ -321,7 +321,6 @@ export default function RegisterMemberScreen() {
                     )}
                 />
             </ScrollView>
-            {/* Buttons fixados no rodapé */}
             <View style={[styles.buttonRow, {backgroundColor: theme.colors.background}]}>
                 <Button mode="contained" onPress={handleSubmit(onSave)} style={styles.saveButton} loading={isLoading}
                         disabled={isLoading}>

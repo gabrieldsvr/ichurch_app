@@ -10,6 +10,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "@/src/api/api";
 import {logToDiscord} from "@/src/api/logService";
+import { useAuth } from "@/src/contexts/AuthProvider";
 
 // 📌 Esquema de Validação com Yup
 const schema = yup.object({
@@ -33,13 +34,16 @@ export default function LoginScreen() {
     const theme = useAppTheme().theme;
 
 
+    const { login } = useAuth(); // AQUI: pega a função login do contexto
+
 
     const onSubmit = async (data: LoginForm) => {
         try {
             setLoading(true);
             // const response = await api.post("/sca/auth/login", data);
             const response = await api.post("/sca/auth/login",{"email": "ichurch@gmail.com", "password": "12345678"} );
-            const token = response.data.token;
+            const { token, user } = response.data;
+            await login({ token, user });
             await AsyncStorage.setItem("token", token);
 
             Alert.alert("Sucesso", "Login realizado com sucesso!");

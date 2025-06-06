@@ -1,6 +1,6 @@
 import React, {useCallback, useState} from "react";
 import {ActivityIndicator, FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View,} from "react-native";
-import {Button, useTheme} from "react-native-paper";
+import {Button, FAB, useTheme} from "react-native-paper";
 import {router, useFocusEffect} from "expo-router";
 import {getUsers} from "@/src/api/peopleService"; // importe sua função real
 import {useTranslation} from "@/src/hook/useTranslation";
@@ -85,19 +85,6 @@ export default function PeopleListScreen() {
                 autoCorrect={false}
                 autoCapitalize="none"
             />
-
-            <View style={styles.filtersRow}>
-                <View style={{flex: 1}}/>
-                <Button
-                    mode="contained"
-                    onPress={() => router.push("/people/upsert")}
-                    compact
-                    contentStyle={{paddingVertical: 4, paddingHorizontal: 8}}
-                >
-                    {t("new_person")}
-                </Button>
-            </View>
-
             {loading ? (
                 <ActivityIndicator
                     size="large"
@@ -132,14 +119,28 @@ export default function PeopleListScreen() {
                                 </Text>
                             </View>
                         </TouchableOpacity>
+
                     )}
                 />
             )}
+            <FAB
+                icon="plus"
+                style={styles.fab}
+                onPress={() => router.push("/people/upsert")}
+            />
         </View>
     );
 }
 
 const styles = StyleSheet.create({
+    fab: {
+        position: 'absolute',
+        margin: 16,
+        right: 0,
+        bottom: 0,
+        backgroundColor: '#4687ff',
+        color: "#fff",
+    },
     container: {flex: 1, paddingHorizontal: 16, paddingTop: 40},
     headerTitle: {
         fontSize: 28,

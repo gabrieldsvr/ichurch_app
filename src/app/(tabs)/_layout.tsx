@@ -4,12 +4,14 @@ import {FontAwesome} from "@expo/vector-icons";
 import Feather from '@expo/vector-icons/Feather';
 import {useTheme} from "react-native-paper";
 import {MinistryProvider} from "@/src/contexts/MinistryProvider";
+import {AuthProvider} from "@/src/contexts/AuthProvider";
 
 export default function Layout() {
     const theme = useTheme(); // 🔥 Pegando o tema atual
 
     return (
-        <MinistryProvider> <Tabs screenOptions={{
+        <MinistryProvider>
+            <Tabs screenOptions={{
             headerShown: false,
             tabBarStyle: {
                 backgroundColor: theme.colors.background, // 🔥 Mantém a TabBar Dark
