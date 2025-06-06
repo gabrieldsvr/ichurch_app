@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useState,useEffect} from "react";
 import {
     Image,
     KeyboardAvoidingView,
@@ -16,7 +16,9 @@ import {useRouter} from "expo-router";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import {useTranslation} from "@/src/hook/useTranslation";
 import {Controller, useForm} from "react-hook-form";
-import {createUser} from "@/src/api/peopleService";
+import {createUser, getUserById, updateUser} from "@/src/api/peopleService";
+import { useLocalSearchParams } from "expo-router";
+
 
 interface FormData {
     name: string;
@@ -28,6 +30,8 @@ interface FormData {
 }
 
 export default function RegisterMemberScreen() {
+    const { id } = useLocalSearchParams<{ id?: string }>();
+
     const theme = useTheme();
     const router = useRouter();
     const {t} = useTranslation();
@@ -35,6 +39,7 @@ export default function RegisterMemberScreen() {
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [imageUri, setImageUri] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+
 
     const {
         control,
@@ -52,6 +57,39 @@ export default function RegisterMemberScreen() {
             type: "member",
         },
     });
+
+    useEffect(() => {
+        if (!id) return;
+
+        async function loadUser() {
+            setIsLoading(true);
+            try {
+                if (!id) return;
+                const response = await getUserById(id);
+                const userData = response.data;
+
+                // preencher os campos do form
+                setValue("name", userData.name);
+                setValue("birthDate", userData.birth_date);
+                setValue("email", userData.email);
+                setValue("phone", userData.phone);
+                setValue("address", userData.address);
+                setValue("type", userData.type);
+
+                if (userData.photo) {
+                    const photoUrl = `https://ichurch-storage.s3.us-east-1.amazonaws.com/${userData.photo}`;
+                    setImageUri(photoUrl);
+                }
+            } catch (error) {
+                console.error("Erro ao carregar usuário para edição", error);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+
+        loadUser();
+    }, [id]);
+
 
     const birthDateValue = watch("birthDate");
     const birthDateObj = birthDateValue ? new Date(birthDateValue) : null;
@@ -87,7 +125,6 @@ export default function RegisterMemberScreen() {
         }
     }
 
-
     async function onSave(data: FormData) {
         if (isLoading) return;
 
@@ -98,9 +135,9 @@ export default function RegisterMemberScreen() {
             const sanitizedData: Record<string, string> = {
                 name: data.name || "",
                 birth_date: data.birthDate || "",
-                email: data.email || "",
-                phone: data.phone || "",
-                address: data.address || "",
+                email: data?.email,
+                phone: data?.phone,
+                address: data?.address,
                 type: data.type || "member",
             };
 
@@ -118,9 +155,9 @@ export default function RegisterMemberScreen() {
                 } as any);
             }
 
-            // Troque `id` por sua lógica para editar/novo
-            if (false /* id */) {
-                // await updateUser(id as string, formData);
+
+            if (id) {
+                await updateUser(id as string, formData);
             } else {
                 await createUser(formData);
             }
@@ -132,6 +169,8 @@ export default function RegisterMemberScreen() {
             setIsLoading(false);
         }
     }
+
+
 
     return (
         <KeyboardAvoidingView
@@ -145,7 +184,7 @@ export default function RegisterMemberScreen() {
                 {/* Header */}
                 <View style={styles.header}>
                     <Text style={[styles.title, {color: theme.colors.onBackground}]}>
-                        {t("insert_new_member")}
+                       {id ? t("edit_member") : t("insert_new_member")}
                     </Text>
                 </View>
 
@@ -324,7 +363,7 @@ export default function RegisterMemberScreen() {
             <View style={[styles.buttonRow, {backgroundColor: theme.colors.background}]}>
                 <Button mode="contained" onPress={handleSubmit(onSave)} style={styles.saveButton} loading={isLoading}
                         disabled={isLoading}>
-                    {t("register")}
+                    {id ? t("update") : t("save")}
                 </Button>
             </View>
         </KeyboardAvoidingView>

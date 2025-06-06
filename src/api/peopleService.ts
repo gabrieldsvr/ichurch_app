@@ -41,8 +41,7 @@ export const getUsers = async (statusParam: string = "") => {
 // Buscar usuário por ID
 export const getUserById = async (id: string) => {
     try {
-        const response = await api.get(`/community/people/${id}`);
-        return response; // ou response.data se preferir só os dados
+        return await api.get(`/community/people/${id}`); // ou response.data se preferir só os dados
     } catch (error) {
         console.error(`Erro ao buscar usuário ID ${id}:`, error);
         throw error;

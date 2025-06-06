@@ -58,6 +58,11 @@ export default {
     no_ministries: 'Nenhum ministério encontrado',
     confirm_delete_user: 'Tem certeza que deseja excluir este usuário?',
     create_login: 'Criar Login',
-    user_create_success:'Usuario cadastrado com sucesso!'
+    user_create_success:'Usuario cadastrado com sucesso!',
+    edit_member: 'Editar Membro',
+    create_account: 'Criar Conta',
+    account_created: 'Conta criada com sucesso!',
+    account_creation_error: 'Erro ao criar conta',
+    info_email_new_account: 'Informe o e-mail da nova conta',
 
 };

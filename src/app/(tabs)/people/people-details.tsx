@@ -168,7 +168,10 @@ export default function UserDetailsScreen() {
                 <View style={styles.actionButtons}>
                     <Button
                         mode="outlined"
-                        onPress={() => router.push(`/people/upsert?id=${userDetail.id}`)}
+                        onPress={() => router.push({
+                            pathname: "/people/upsert",
+                            params: { id: userDetail.id },
+                        })}
                         style={styles.editButton}
                     >
                         {t("edit")}
@@ -257,7 +260,7 @@ export default function UserDetailsScreen() {
                 {/* Conteúdo do modal */}
                 <View style={styles.modalContent}>
                         <>
-                            <Text>Informe o e-mail da nova conta:</Text>
+                            <Text>{t('info_email_new_account')}:</Text>
                             <TextInput
                                 label={t("email")}
                                 value={email}
@@ -273,7 +276,7 @@ export default function UserDetailsScreen() {
                                 disabled={!email}
                                 style={{ marginTop: 16 }}
                             >
-                                Criar conta
+                                {t("create_account")}
                             </Button>
                         </>
                 </View>

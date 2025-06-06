@@ -4903,10 +4903,10 @@ jest-environment-node@^29.7.0:
     jest-mock "^29.7.0"
     jest-util "^29.7.0"
 
-jest-expo@~53.0.6:
-  version "53.0.6"
-  resolved "https://registry.yarnpkg.com/jest-expo/-/jest-expo-53.0.6.tgz#1dbf296e37ec3717030dcebaaad83005bd0dd21e"
-  integrity sha512-xl5DSQE3OZIfKITg9rqUJutPbCtIzB58iV6L4aiuPSxBIsrnCXo7wAmxHcq23FJoTcyjhQo3IE49gTlv5zs+Xw==
+jest-expo@~53.0.7:
+  version "53.0.7"
+  resolved "https://registry.yarnpkg.com/jest-expo/-/jest-expo-53.0.7.tgz#ab1c288940dcdf470c25b7b18e2ed99f03d26bc6"
+  integrity sha512-Uiu3ES0sWbsxpifQuBzXMI1/N9JygfJfwEby/Qw/OPndIQ1YeeIQqkbP52xn6UhdSM4qYQiteX3EjY8TfrZIoA==
   dependencies:
     "@expo/config" "~11.0.10"
     "@expo/json-file" "^9.1.4"
