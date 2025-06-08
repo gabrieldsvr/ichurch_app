@@ -1,61 +1,44 @@
-import React from 'react';
-import {Tabs} from 'expo-router';
-import {FontAwesome} from "@expo/vector-icons";
-import Feather from '@expo/vector-icons/Feather';
-import {useTheme} from "react-native-paper";
-import {MinistryProvider} from "@/src/contexts/MinistryProvider";
-import {AuthProvider} from "@/src/contexts/AuthProvider";
+import { Tabs } from "expo-router";
+import { useTheme } from "react-native-paper";
+import { useMinistry } from "@/src/contexts/MinistryProvider";
+import { ALL_TABS } from "@/src/constants/tabs";
+import { TABS_BY_MINISTRY_TYPE } from "@/src/constants/ministryTabsMap";
 
-export default function Layout() {
-    const theme = useTheme(); // 🔥 Pegando o tema atual
+export default function TabLayout() {
+  const theme = useTheme();
+  const { currentMinistry } = useMinistry();
+  const ministryType = currentMinistry?.type ?? "core";
 
-    return (
-        <MinistryProvider>
-            <Tabs screenOptions={{
-            headerShown: false,
-            tabBarStyle: {
-                backgroundColor: theme.colors.background, // 🔥 Mantém a TabBar Dark
-                borderTopColor: theme.colors.surface, // 🔥 Cor da borda superior
-            },
-            tabBarActiveTintColor: theme.colors.primary, // 🔵 Cor do ícone ativo
-            tabBarInactiveTintColor: "#999", // 🎨 Ícones inativos mais suaves
-        }}>
-            <Tabs.Screen
-                name="index"
-                options={{
-                    title: 'Home',
-                    tabBarIcon: ({color}) => <FontAwesome size={24} name="home" color={color}/>,
-                }}
-            />
-            <Tabs.Screen
-                name="people"
-                options={{
-                    title: 'Pessoas',
-                    tabBarIcon: ({color}) => <Feather name="users" size={24} color={color}/>,
-                }}
-            />
-            <Tabs.Screen
-                name="events"
-                options={{
-                    title: 'Eventos',
-                    tabBarIcon: ({color}) => <Feather name="calendar" size={24} color={color}/>,
-                }}
-            />
-            <Tabs.Screen
-                name="ministery"
-                options={{
-                    title: 'Ministério',
-                    tabBarIcon: ({color}) => <Feather name="briefcase" size={24} color={color}/>,
-                }}
-            />
-            <Tabs.Screen
-                name="settings"
-                options={{
-                    title: 'Configurações',
-                    tabBarIcon: ({color}) => <Feather name="settings" size={24} color={color}/>,
-                }}
-            />
-        </Tabs>
-        </MinistryProvider>
-    );
+  const allowedTabKeys = TABS_BY_MINISTRY_TYPE[ministryType] ?? [];
+
+  const dynamicTabs = Object.values(ALL_TABS).map((tab) => ({
+    ...tab,
+    visible: allowedTabKeys.includes(tab.name),
+  }));
+
+  return (
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: {
+          backgroundColor: theme.colors.background,
+          borderTopColor: theme.colors.surface,
+        },
+        tabBarActiveTintColor: theme.colors.primary,
+        tabBarInactiveTintColor: "#999",
+      }}
+    >
+      {dynamicTabs.map((tab) => (
+        <Tabs.Screen
+          key={tab.name}
+          name={tab.name}
+          options={{
+            title: tab.title,
+            tabBarIcon: tab.icon,
+            href: tab.visible ? undefined : null,
+          }}
+        />
+      ))}
+    </Tabs>
+  );
 }
