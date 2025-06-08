@@ -41,7 +41,7 @@ export default function SettingsScreen() {
         }
     };
     return (
-        <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <ScrollView contentContainerStyle={styles.scrollContainer}  showsVerticalScrollIndicator={false}>
             <View style={[styles.container, {backgroundColor: theme.colors.background}]}>
                 {/* 🔥 Alternar Tema */}
                 <List.Item

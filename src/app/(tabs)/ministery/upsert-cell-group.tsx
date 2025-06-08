@@ -128,7 +128,7 @@ export default function UpsertCellGroup() {
 
     return (
         <View style={styles.container}>
-            <ScrollView contentContainerStyle={styles.scrollContent}>
+            <ScrollView contentContainerStyle={styles.scrollContent}  showsVerticalScrollIndicator={false}>
                 <Text style={styles.title}>{isEditing ? "Editar Célula" : "Nova Célula"}</Text>
 
                 <Text style={styles.label}>Nome da Célula</Text>
@@ -181,6 +181,7 @@ export default function UpsertCellGroup() {
                 <View style={styles.modalContainer}>
                     <Text style={styles.modalTitle}>Selecionar membros</Text>
                     <FlatList
+                        showsVerticalScrollIndicator={false}
                         data={people}
                         keyExtractor={item => item.id}
                         renderItem={({ item }) => (

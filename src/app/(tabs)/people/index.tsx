@@ -65,12 +65,9 @@ export default function PeopleListScreen() {
     );
 
     return (
-        <View style={[styles.container, {backgroundColor: theme.colors.background}]}>
-            <Text style={[styles.headerTitle, {color: theme.colors.onBackground}]}>
-                {t("people")}{" "}
-                <Text style={[styles.headerSubtitle, {color: theme.colors.onSurfaceVariant}]}>
-                    / {t("members")}
-                </Text>
+        <View style={styles.container}>
+            <Text style={[styles.headerTitle, { color: theme.colors.onBackground }]}>
+                {t("people")}
             </Text>
 
             <TextInput
@@ -93,6 +90,7 @@ export default function PeopleListScreen() {
                 />
             ) : (
                 <FlatList
+                    showsVerticalScrollIndicator={false}
                     data={filteredPeople}
                     keyExtractor={(item) => item.id}
                     style={{marginTop: 16}}
@@ -134,12 +132,18 @@ export default function PeopleListScreen() {
 
 const styles = StyleSheet.create({
     fab: {
-        position: 'absolute',
-        margin: 16,
-        right: 0,
-        bottom: 0,
-        backgroundColor: '#4687ff',
-        color: "#fff",
+        position: "absolute",
+        bottom: 24,
+        right: 24,
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        justifyContent: "center",
+        alignItems: "center",
+        elevation: 8,
+        shadowColor: "#000",
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
     },
     container: {flex: 1, paddingHorizontal: 16, paddingTop: 40},
     headerTitle: {

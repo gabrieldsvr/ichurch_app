@@ -127,6 +127,7 @@ export default function EventSelfCheckInScreen() {
                 <ActivityIndicator size="large" color={theme.colors.primary} />
             ) : (
                 <FlatList
+                    showsVerticalScrollIndicator={false}
                     data={filteredPeople}
                     keyExtractor={(item) => item.id}
                     renderItem={({ item }) => (

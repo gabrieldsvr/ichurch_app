@@ -1,37 +1,27 @@
-import React, { useEffect, useState } from "react";
-import {
-    View,
-    FlatList,
-    StyleSheet,
-    TouchableOpacity,
-    RefreshControl,
-    Alert
-} from "react-native";
-import {
-    Button,
-    Text,
-    Card,
-    Divider,
-    IconButton,
-    Menu,
-    useTheme
-} from "react-native-paper";
-import { router } from "expo-router";
-import {useAppTheme} from "@/src/contexts/ThemeProvider";
-import api from "@/src/api/api";
+import React, {useEffect, useState} from "react";
+import {Alert, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View,} from "react-native";
+import {Chip, Surface, useTheme} from "react-native-paper";
+import {router} from "expo-router";
+import {MaterialCommunityIcons} from "@expo/vector-icons";
+import {getEvents} from "@/src/api/eventService";
+import {groupBy} from "lodash";
+import CalendarView from "@/src/component/CalendarView";
 
 interface EventDTO {
     id: string;
     name: string;
     event_date: string;
     description?: string;
+    location?: string;
+    type?: string;
 }
 
 export default function EventsScreen() {
-    const theme = useAppTheme().theme; // 🔥 Obtém o tema atual
+    const theme = useTheme();
     const [events, setEvents] = useState<EventDTO[]>([]);
+    const [activeTab, setActiveTab] = useState<"upcoming" | "past" | "calendar">("upcoming");
     const [refreshing, setRefreshing] = useState(false);
-    const [visibleMenus, setVisibleMenus] = useState<{ [key: string]: boolean }>({});
+    const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split("T")[0]);
 
     useEffect(() => {
         fetchEvents();
@@ -40,159 +30,306 @@ export default function EventsScreen() {
     const fetchEvents = async () => {
         try {
             setRefreshing(true);
-            const response = await api.get("/community/events");
-
-            const sortedEvents = response.data.sort(
-                (a: EventDTO, b: EventDTO) =>  new Date(b.event_date).getTime() - new Date(a.event_date).getTime()
-            );
-
-            setEvents(sortedEvents);
+            const data = await getEvents();
+            setEvents(data);
         } catch (error) {
             console.error("Erro ao buscar eventos:", error);
+            Alert.alert("Erro", "Falha ao carregar eventos.");
         } finally {
             setRefreshing(false);
         }
     };
 
+    const now = new Date();
+    const filteredEvents = (activeTab === "upcoming"
+            ? events.filter(ev => new Date(ev.event_date) >= now)
+            : events.filter(ev => new Date(ev.event_date) < now)
+    ).sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime());
 
-    const toggleMenu = (eventId: string) => {
-        setVisibleMenus((prev) => ({
-            ...prev,
-            [eventId]: !prev[eventId],
-        }));
-    };
+    const groupedEvents = groupBy(filteredEvents, (ev) => {
+        const date = new Date(ev.event_date);
+        return date.toISOString().split("T")[0];
+    });
 
-    const handleEventPress = (eventId: string) => {
-        router.push(`/events/${eventId}`);
-    };
+    const EventCard = ({event}: { event: EventDTO }) => {
+        const evDate = new Date(event.event_date);
+        const day = evDate.getDate().toString().padStart(2, "0");
+        const month = evDate.toLocaleString("pt-BR", {month: "short"}).toUpperCase();
 
-    const handleEditEvent = (eventId: string) => {
-        router.push({
-            pathname: "/events/edit",
-            params: { eventId },
+        const typeColors: Record<string, string> = {
+            Culto: "#7C3AED",
+            Conferência: "#F97316",
+            Outro: "#3B82F6",
+        };
+        const color = typeColors[event.type ?? "Outro"] ?? "#3B82F6";
+
+        const formattedTime = evDate.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
         });
-    };
 
-    const handleDeleteEvent = async (eventId: string) => {
-        Alert.alert(
-            "Excluir Evento",
-            "Tem certeza de que deseja excluir este evento?",
-            [
-                { text: "Cancelar", style: "cancel" },
-                {
-                    text: "Excluir",
-                    style: "destructive",
-                    onPress: async () => {
-                        try {
-                            await api.delete(`/community/events/${eventId}`);
-                            Alert.alert("Sucesso", "Evento excluído com sucesso.");
-                            fetchEvents();
-                        } catch (error) {
-                            console.error("Erro ao excluir evento:", error);
-                            Alert.alert("Erro", "Falha ao excluir evento.");
-                        }
-                    },
-                },
-            ]
+        return (
+            <Surface style={[styles.card, {backgroundColor: theme.colors.surface}]} elevation={4}>
+                <TouchableOpacity
+                    onPress={() => router.push({pathname: "/events/event-details", params: {eventId: event.id}})}
+                    style={styles.cardTouchable}
+                >
+                    <View style={[styles.sideDateBar, {backgroundColor: color}]}>
+                        <Text style={styles.sideDateDay}>{day}</Text>
+                        <Text style={styles.sideDateMonth}>{month}</Text>
+                    </View>
+
+                    <View style={styles.cardContent}>
+                        <Chip
+                            style={[styles.typeChip, {backgroundColor: color}]}
+                            textStyle={{color: "#fff", fontWeight: "700"}}
+                        >
+                            {event.type || "Evento"}
+                        </Chip>
+
+                        <Text style={[styles.eventName, {color: theme.colors.onSurface}]} numberOfLines={2}>
+                            {event.name}
+                        </Text>
+
+                        {event.description ? (
+                            <Text style={[styles.eventDescription, {color: theme.colors.onSurfaceVariant}]}
+                                  numberOfLines={3}>
+                                {event.description}
+                            </Text>
+                        ) : null}
+
+                        <View style={styles.infoRow}>
+                            <MaterialCommunityIcons name="clock-outline" size={16} color={theme.colors.outline}/>
+                            <Text style={[styles.infoText, {color: theme.colors.outline}]}>{formattedTime}h</Text>
+                        </View>
+
+                        <View style={styles.infoRow}>
+                            <MaterialCommunityIcons name="map-marker" size={16} color={theme.colors.outline}/>
+                            <Text
+                                style={[styles.infoText, {color: theme.colors.outline}]}> {event.location || "Local não informado"} </Text>
+                        </View>
+                    </View>
+                </TouchableOpacity>
+            </Surface>
         );
     };
 
-    return (
-        <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-            {/* Botão Adicionar Evento */}
-            <Button
-                icon="calendar-plus"
-                mode="contained"
-                onPress={() => router.push("/events/insert")}
-                style={styles.addButton}
-                textColor={theme.colors.onPrimary}
-            >
-                Adicionar Evento
-            </Button>
+    const formatDateLabel = (dateStr: string) => {
+        const date = new Date(dateStr);
+        const day = date.getDate().toString().padStart(2, "0");
+        const month = date.toLocaleString("pt-BR", {month: "short"}).toUpperCase();
+        const weekday = date.toLocaleString("pt-BR", {weekday: "long"});
+        return `${day} ${month} • ${weekday.charAt(0).toUpperCase() + weekday.slice(1)}`;
+    };
 
-            <FlatList
-                data={events}
-                keyExtractor={(item: EventDTO) => item.id}
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={fetchEvents} />}
-                renderItem={({ item }) => (
-                    <TouchableOpacity onPress={() => handleEventPress(item.id)}>
-                        <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-                            <Card.Title
-                                title={item.name}
-                                subtitle={`${new Date(item.event_date).toLocaleDateString()}`}
-                                titleStyle={{ color: theme.colors.onSurface }}
-                                subtitleStyle={{ color: theme.colors.onSurfaceVariant }}
-                                left={(props) => (
-                                    <IconButton {...props} icon="calendar-outline" />
-                                )}
-                                right={(props) => (
-                                    <Menu
-                                        visible={visibleMenus[item.id] || false}
-                                        onDismiss={() => toggleMenu(item.id)}
-                                        anchor={
-                                            <IconButton
-                                                {...props}
-                                                icon="dots-vertical"
-                                                onPress={() => toggleMenu(item.id)}
-                                            />
-                                        }
-                                    >
-                                        <Menu.Item
-                                            onPress={() => {
-                                                toggleMenu(item.id)
-                                                handleEventPress(item.id)
-                                            }}
-                                            title="Ver Detalhes"
-                                            leadingIcon="eye"
-                                        />
-                                        <Menu.Item
-                                            onPress={() => {
-                                                toggleMenu(item.id)
-                                                handleEditEvent(item.id)
-                                            }}
-                                            title="Editar"
-                                            leadingIcon="pencil"
-                                        />
-                                        <Menu.Item
-                                            onPress={() => {
-                                                toggleMenu(item.id)
-                                                handleDeleteEvent(item.id)
-                                            }}
-                                            title="Excluir"
-                                            leadingIcon="delete"
-                                            titleStyle={{ color: theme.colors.error }}
-                                        />
-                                    </Menu>
-                                )}
-                            />
-                            <Card.Content>
-                                <Text style={{ color: theme.colors.onSurface }}>
-                                    {item.description || "Sem descrição disponível"}
-                                </Text>
-                            </Card.Content>
-                            <Divider style={styles.divider} />
-                        </Card>
-                    </TouchableOpacity>
-                )}
-            />
-        </View>
+    return (
+        <SafeAreaView style={[styles.container, {backgroundColor: theme.colors.background}]}>
+            <View style={styles.headerRow}>
+                <Text style={[styles.title, {color: theme.colors.onBackground}]}>Eventos</Text>
+                <TouchableOpacity onPress={() => console.log("Abrir filtros")}>
+                    <MaterialCommunityIcons name="filter-variant" size={24} color={theme.colors.onBackground}/>
+                </TouchableOpacity>
+            </View>
+
+            <View style={styles.tabsRow}>
+                <TouchableOpacity onPress={() => setActiveTab("upcoming")}
+                                  style={[styles.tab, activeTab === "upcoming" && styles.tabActive]}>
+                    <Text style={[styles.tabText, activeTab === "upcoming" && styles.tabTextActive]}>Próximos</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setActiveTab("past")}
+                                  style={[styles.tab, activeTab === "past" && styles.tabActive]}>
+                    <Text style={[styles.tabText, activeTab === "past" && styles.tabTextActive]}>Anteriores</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setActiveTab("calendar")}
+                                  style={[styles.tab, activeTab === "calendar" && styles.tabActive]}>
+                    <Text style={[styles.tabText, activeTab === "calendar" && styles.tabTextActive]}>Calendário</Text>
+                </TouchableOpacity>
+            </View>
+
+            {activeTab === "calendar" ? (
+                <View style={{flex: 1}}>
+                    <CalendarView
+                        events={events}
+                        selectedDate={selectedDate}
+                        onSelectDate={setSelectedDate}
+                    />
+
+                </View>
+            ) : (
+                <ScrollView contentContainerStyle={{paddingBottom: 100}} showsVerticalScrollIndicator={false}>
+                    {Object.entries(groupedEvents).map(([dateStr, eventsOnDay], index, array) => (
+                        <View key={dateStr} style={{marginBottom: 20}}>
+                            <View style={styles.dateRow}>
+                                <View style={styles.timelineContainer}>
+                                    <View style={styles.timelineCircle}/>
+                                    {index < array.length - 1 && <View style={styles.timelineLine}/>}
+                                </View>
+                                <Text
+                                    style={[styles.dateLabel, {color: theme.colors.onSurfaceVariant}]}>{formatDateLabel(dateStr)}</Text>
+                            </View>
+                            {eventsOnDay.map((event) => (
+                                <EventCard key={event.id} event={event}/>
+                            ))}
+                        </View>
+                    ))}
+
+                    {filteredEvents.length === 0 && (
+                        <Text style={[styles.noEventsText, {color: theme.colors.onSurfaceVariant}]}>Nenhum evento
+                            encontrado</Text>
+                    )}
+                </ScrollView>
+            )}
+
+            <TouchableOpacity
+                style={[styles.floatingButton, {backgroundColor: theme.colors.primary}]}
+                // onPress={() => router.push({pathname: "/events/event-details", params: {id}})}
+                activeOpacity={0.8}
+            >
+                <MaterialCommunityIcons name="plus" size={28} color="#fff"/>
+            </TouchableOpacity>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 20,
+        paddingTop: 50,
+        paddingHorizontal: 16,
     },
-    addButton: {
-        marginBottom: 15,
+    headerRow: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+    title: {
+        fontSize: 28,
+        fontWeight: "bold",
+    },
+    tabsRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginVertical: 16,
+        justifyContent: "center",
+    },
+    tab: {
+        marginLeft: 12,
+        paddingBottom: 6,
+    },
+    tabActive: {
+        borderBottomWidth: 3,
+        borderBottomColor: "#7C3AED",
+    },
+    tabText: {
+        fontSize: 16,
+        color: "#6B7280",
+    },
+    tabTextActive: {
+        color: "#7C3AED",
+        fontWeight: "600",
     },
     card: {
-        marginBottom: 10,
-        elevation: 3,
-        borderRadius: 8,
+        marginBottom: 16,
+        borderRadius: 16,
+        padding: 12,
+        elevation: 6,
     },
-    divider: {
-        marginVertical: 10,
+    cardTouchable: {
+        flexDirection: "row",
+        flex: 1,
+    },
+    sideDateBar: {
+        width: 60,
+        borderTopLeftRadius: 16,
+        borderBottomLeftRadius: 16,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingVertical: 10,
+    },
+    sideDateDay: {
+        fontSize: 26,
+        fontWeight: "900",
+        color: "#fff",
+        lineHeight: 28,
+    },
+    sideDateMonth: {
+        fontSize: 14,
+        fontWeight: "700",
+        color: "#fff",
+        textTransform: "uppercase",
+    },
+    cardContent: {
+        flex: 1,
+        padding: 12,
+        justifyContent: "space-between",
+    },
+    typeChip: {
+        alignSelf: "flex-start",
+        marginBottom: 8,
+        borderRadius: 12,
+    },
+    eventName: {
+        fontWeight: "700",
+        fontSize: 16,
+    },
+    eventDescription: {
+        fontSize: 13,
+        marginBottom: 8,
+    },
+    infoRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginTop: 4,
+        gap: 6,
+    },
+    infoText: {
+        fontSize: 13,
+    },
+    noEventsText: {
+        textAlign: "center",
+        padding: 20,
+        fontSize: 14,
+        fontStyle: "italic",
+    },
+    floatingButton: {
+        position: "absolute",
+        bottom: 24,
+        right: 24,
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        justifyContent: "center",
+        alignItems: "center",
+        elevation: 8,
+        shadowColor: "#000",
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+    },
+    dateLabel: {
+        fontSize: 16,
+        fontWeight: "600",
+    },
+    dateRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 8,
+        marginTop: 16,
+    },
+    timelineContainer: {
+        width: 20,
+        alignItems: 'center',
+        marginRight: 8,
+    },
+    timelineCircle: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: '#7C3AED',
+    },
+    timelineLine: {
+        width: 2,
+        flex: 1,
+        backgroundColor: '#7C3AED',
+        marginTop: 2,
     },
 });

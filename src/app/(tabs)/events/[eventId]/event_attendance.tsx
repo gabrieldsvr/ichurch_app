@@ -166,6 +166,7 @@ export default function EventAttendanceScreen() {
             />
 
             <FlatList
+                showsVerticalScrollIndicator={false}
                 data={filteredPeople}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (

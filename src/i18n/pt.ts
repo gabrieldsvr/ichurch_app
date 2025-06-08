@@ -69,5 +69,6 @@ export default {
     manage_members: 'Gerenciar Membros',
     members_updated: 'Membros atualizados com sucesso!',
     ministery_deleted: 'Ministério excluído com sucesso!',
+    no_events_today: 'Nenhum evento para hoje',
 
 };

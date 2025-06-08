@@ -150,7 +150,7 @@ export default function UserDetailsScreen() {
 
     return (
         <>
-            <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+            <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}  showsVerticalScrollIndicator={false}>
                 <View style={styles.header}>
                     {userDetail.photo ? (
                         <Image

@@ -204,7 +204,7 @@ export default function MinisteryDetailScreen() {
 
     return (
         <>
-            <ScrollView style={[styles.container, {backgroundColor: theme.colors.background}]}>
+            <ScrollView style={[styles.container, {backgroundColor: theme.colors.background}]}  showsVerticalScrollIndicator={false}>
                 <View style={styles.header}>
                     <View style={[styles.iconContainer, {backgroundColor: meta.color + "33"}]}>
                         <MaterialCommunityIcons name={meta.icon} size={80} color={meta.color}/>

@@ -5,6 +5,7 @@ import { useLocalSearchParams, router } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { PieChart } from "react-native-gifted-charts";
 import api from "@/src/api/api";
+import {useTranslation} from "@/src/hook/useTranslation";
 
 interface Event {
     id: string;
@@ -24,6 +25,7 @@ interface EventStats {
 
 export default function EventDetailsScreen() {
     const theme = useTheme();
+    const {t} = useTranslation();
     const { eventId } = useLocalSearchParams();
     const [event, setEvent] = useState<Event | null>(null);
     const [stats, setStats] = useState<EventStats | null>(null);
@@ -68,63 +70,64 @@ export default function EventDetailsScreen() {
 
     return (
         <View style={styles.container}>
-                <View style={styles.headerRow}>
-                    <Text style={[styles.name, { color: theme.colors.onSurface }]}>{event?.name}</Text>
-                    <View style={styles.actionRow}>
-                        <IconButton icon="pencil" onPress={() => router.push(`/events/${eventId}/edit`)} />
-                        <IconButton icon="delete" onPress={() => Alert.alert("Excluir", "Confirmar exclusão?")} />
-                    </View>
+            <Text style={[styles.headerTitle, { color: theme.colors.onBackground }]}>
+                {t("people")}
+            </Text>
+            <View style={styles.headerRow}>
+                <Text style={[styles.name, { color: theme.colors.onSurface }]}>{event?.name}</Text>
+                <View style={styles.actionRow}>
+                    <IconButton icon="pencil" onPress={() => router.push(`/events/${eventId}/edit`)} />
+                    <IconButton icon="delete" onPress={() => Alert.alert("Excluir", "Confirmar exclusão?")} />
                 </View>
+            </View>
 
-                <Text style={[styles.description, { color: theme.colors.onSurfaceVariant }]}> {event?.description || "Sem descrição"}</Text>
+            <Text style={[styles.description, { color: theme.colors.onSurfaceVariant }]}> {event?.description || "Sem descrição"}</Text>
 
-                <View style={styles.infoRow}>
-                    <MaterialCommunityIcons name="calendar" size={20} color={theme.colors.outline} />
-                    <Text style={[styles.infoText, { color: theme.colors.outline }]}> {new Date(event?.date ?? new Date()).toLocaleString()}</Text>
-                </View>
+            <View style={styles.infoRow}>
+                <MaterialCommunityIcons name="calendar" size={20} color={theme.colors.outline} />
+                <Text style={[styles.infoText, { color: theme.colors.outline }]}> {new Date(event?.date ?? new Date()).toLocaleString()}</Text>
+            </View>
 
-                <Divider style={{ marginVertical: 16 }} />
+            <Divider style={{ marginVertical: 16 }} />
 
-                {stats && (
-                    <>
-                        <Text style={[styles.statsTitle, { color: theme.colors.onSurface }]}>Estatísticas</Text>
-                        <View style={styles.statsContainer}>
-                            <PieChart data={chartData} donut radius={60} showText textColor="white" />
-                            <View style={styles.statsTextBlock}>
-                                <Text style={{ color: theme.colors.onSurface }}>Visitantes: {stats.totalVisitorsInEvent}</Text>
-                                <Text style={{ color: theme.colors.onSurface }}>Frequentadores: {stats.totalRegularAttendeesInEvent}</Text>
-                                <Text style={{ color: theme.colors.onSurface }}>Membros: {stats.totalMembersInEvent}</Text>
-                                <Text style={{ color: theme.colors.onSurface }}>Total: {stats.totalPeople}</Text>
-                            </View>
+            {stats && (
+                <>
+                    <Text style={[styles.statsTitle, { color: theme.colors.onSurface }]}>Estatísticas</Text>
+                    <View style={styles.statsContainer}>
+                        <PieChart data={chartData} donut radius={60} showText textColor="white" />
+                        <View style={styles.statsTextBlock}>
+                            <Text style={{ color: theme.colors.onSurface }}>Visitantes: {stats.totalVisitorsInEvent}</Text>
+                            <Text style={{ color: theme.colors.onSurface }}>Frequentadores: {stats.totalRegularAttendeesInEvent}</Text>
+                            <Text style={{ color: theme.colors.onSurface }}>Membros: {stats.totalMembersInEvent}</Text>
+                            <Text style={{ color: theme.colors.onSurface }}>Total: {stats.totalPeople}</Text>
                         </View>
-                    </>
-                )}
+                    </View>
+                </>
+            )}
 
-                <View style={{ marginTop: 24 }}>
-                    <Button
-                        icon="clipboard-check"
-                        mode="contained"
-                        onPress={() => router.push(`/events/${eventId}/event_attendance`)}
-                    >
-                        Registrar Presença
-                    </Button>
-                    <Button
-                        icon="qrcode-scan"
-                        mode="outlined"
-                        style={{ marginTop: 10 }}
-                        onPress={() => router.push(`/events/${eventId}/checkin`)}
-                    >
-                        Abrir Check-in
-                    </Button>
-                </View>
+            <View style={{ marginTop: 24 }}>
+                <Button
+                    icon="clipboard-check"
+                    mode="contained"
+                    onPress={() => router.push(`/events/${eventId}/event_attendance`)}
+                >
+                    Registrar Presença
+                </Button>
+                <Button
+                    icon="qrcode-scan"
+                    mode="outlined"
+                    style={{ marginTop: 10 }}
+                    onPress={() => router.push(`/events/${eventId}/checkin`)}
+                >
+                    Abrir Check-in
+                </Button>
+            </View>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        padding: 20,
-    },
+    container: {flex: 1, paddingHorizontal: 16},
     card: {
         padding: 16,
         borderRadius: 12,
@@ -168,5 +171,10 @@ const styles = StyleSheet.create({
     },
     statsTextBlock: {
         gap: 6,
+    },
+    headerTitle: {
+        fontSize: 28,
+        marginTop: 10,
+        fontWeight: "bold",
     },
 });

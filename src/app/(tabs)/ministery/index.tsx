@@ -99,6 +99,7 @@ export default function MinisteryHome() {
                 <Text style={styles.emptyText}>{t("no_ministries_found")}</Text>
             ) : (
                 <FlatList
+                    showsVerticalScrollIndicator={false}
                     data={ministeries}
                     keyExtractor={(item) => item.id}
                     contentContainerStyle={styles.listContainer}
@@ -120,10 +121,17 @@ const styles = StyleSheet.create({
     },
     fab: {
         position: "absolute",
-        margin: 16,
-        right: 0,
-        bottom: 0,
-        backgroundColor: "#4687ff",
+        bottom: 24,
+        right: 24,
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        justifyContent: "center",
+        alignItems: "center",
+        elevation: 8,
+        shadowColor: "#000",
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
     },
     loader: {
         marginTop: 30,

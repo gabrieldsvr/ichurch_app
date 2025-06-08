@@ -74,6 +74,7 @@ export default function HomeScreen() {
                         <ActivityIndicator size="small" color={theme.colors.secondary}/>
                     ) : (
                         <FlatList
+                            showsVerticalScrollIndicator={false}
                             data={ministries}
                             keyExtractor={(item) => item.id}
                             horizontal

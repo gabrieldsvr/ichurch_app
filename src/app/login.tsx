@@ -41,7 +41,7 @@ export default function LoginScreen() {
         try {
             setLoading(true);
             // const response = await api.post("/sca/auth/login", data);
-            const response = await api.post("/sca/auth/login",{"email": "ichurch@gmail.com", "password": "12345678"} );
+            const response = await api.post("/sca/auth/login",{"email": "lideranca@pibfloripa.com.br", "password": "adm123"} );
             const { token, user } = response.data;
             await login({ token, user });
             await AsyncStorage.setItem("token", token);

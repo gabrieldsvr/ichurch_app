@@ -80,7 +80,7 @@ export default function MinisteryForm() {
     };
 
     return (
-        <ScrollView contentContainerStyle={styles.container}>
+        <ScrollView contentContainerStyle={styles.container}  showsVerticalScrollIndicator={false}>
             <Text style={styles.title}>{isEditing ? "Editar Ministério" : "Novo Ministério"}</Text>
 
             <Text style={styles.label}>Nome do Ministério</Text>

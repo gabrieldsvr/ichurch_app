@@ -82,6 +82,7 @@ export default function NotificationsScreen() {
             <Text style={styles.title}>Notificações</Text>
 
             <FlatList
+                showsVerticalScrollIndicator={false}
                 data={notifications}
                 keyExtractor={(item) => item.id}
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={fetchNotifications} />}
