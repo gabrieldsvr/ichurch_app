@@ -1,19 +1,6 @@
 // src/api/eventService.ts
 import api from "./api";
-
-export interface EventDTO {
-  id: string;
-  name: string;
-  event_date: string;
-  description?: string;
-  location?: string;
-  type?: string;
-  ministry_id?: string;
-  company_id?: string;
-  status?: "scheduled" | "cancelled" | "completed";
-  created_at?: string;
-  updated_at?: string;
-}
+import { EventDTO } from "@/src/dto/EventDTO";
 
 export interface GetEventsParams {
   ministry_id?: string;

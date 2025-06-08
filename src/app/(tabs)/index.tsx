@@ -22,7 +22,11 @@ export default function HomeScreen() {
       setMinistries(list);
 
       if (!loading && !currentMinistry && list.length > 0) {
-        setCurrentMinistry({ id: list[0].id, type: list[0].type || "default" });
+        setCurrentMinistry({
+          id: list[0].id,
+          type: list[0].type || "default",
+          name: list[0].name,
+        });
       }
     } catch (error) {
       console.error("Erro ao buscar ministérios:", error);
@@ -75,6 +79,7 @@ export default function HomeScreen() {
                     setCurrentMinistry({
                       id: item.id,
                       type: item.type || "default",
+                      name: item.name,
                     })
                   }
                   style={[

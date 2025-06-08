@@ -1,11 +1,19 @@
+// src/dto/EventDTO.ts
+
 export interface EventDTO {
-    id: string;
-    companyId: string;
-    name: string;
-    eventDate: string; // ISO datetime (ex: "2025-06-05T19:00:00Z")
-    description?: string | null;
-    status: 'active' | 'canceled';
-    createdAt: string;
-    updatedAt: string;
-    ministryId?: string | null;
+  id: string;
+  companyId: string;
+
+  name: string;
+  eventDate: string; // ISO 8601 datetime: "2025-06-05T19:00:00Z"
+  description?: string | null;
+  location?: string | null;
+
+  type?: string | null; // ex: "Culto", "Conferência", etc.
+  status: "active" | "canceled" | "scheduled";
+
+  ministryId?: string | null;
+
+  createdAt: string;
+  updatedAt: string;
 }

@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from "react";
+// src/app/events/index.tsx
+
+import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
   RefreshControl,
@@ -9,36 +11,34 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Chip, Surface, useTheme } from "react-native-paper";
-import { router } from "expo-router";
+import PagerView from "react-native-pager-view";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { getEvents } from "@/src/api/eventService";
+import { useTheme } from "react-native-paper";
+import { router } from "expo-router";
 import { groupBy } from "lodash";
-import CalendarView from "@/src/component/CalendarView";
-import { ButtonFloatAdd } from "@/src/component/ButtonFloatAdd";
-import { useMinistry } from "@/src/contexts/MinistryProvider";
 
-interface EventDTO {
-  id: string;
-  name: string;
-  event_date: string;
-  description?: string;
-  location?: string;
-  type?: string;
-}
+import { getEvents } from "@/src/api/eventService";
+import { useMinistry } from "@/src/contexts/MinistryProvider";
+import { EventCard } from "@/src/component/EventCard";
+import { ButtonFloatAdd } from "@/src/component/ButtonFloatAdd";
+import { EventDTO } from "@/src/dto/EventDTO";
+import { useTranslation } from "@/src/hook/useTranslation";
 
 export default function EventsScreen() {
   const theme = useTheme();
+  const { t } = useTranslation();
+  const pagerRef = useRef<PagerView>(null);
+
   const [events, setEvents] = useState<EventDTO[]>([]);
   const [activeTab, setActiveTab] = useState<"upcoming" | "past" | "calendar">(
     "upcoming",
   );
-
-  const { currentMinistry } = useMinistry();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedDate, setSelectedDate] = useState(
-    () => new Date().toISOString().split("T")[0],
+    new Date().toISOString().split("T")[0],
   );
+
+  const { currentMinistry } = useMinistry();
 
   useEffect(() => {
     fetchEvents();
@@ -47,130 +47,43 @@ export default function EventsScreen() {
   const fetchEvents = async () => {
     try {
       setRefreshing(true);
-
-      const data = await getEvents({
-        ministry_id: currentMinistry?.id,
-      });
-
-      const scheduledEvents = data.filter(
-        (event) => event.status === "scheduled",
-      );
-
-      setEvents(scheduledEvents);
+      const data = await getEvents({ ministry_id: currentMinistry?.id });
+      setEvents(data);
     } catch (error) {
       console.error("Erro ao buscar eventos:", error);
-      Alert.alert("Erro", "Falha ao carregar eventos.");
+      Alert.alert("Erro", "Não foi possível carregar os eventos.");
     } finally {
       setRefreshing(false);
     }
   };
 
-  const now = new Date();
-  const filteredEvents = (
-    activeTab === "upcoming"
-      ? events.filter((ev) => new Date(ev.event_date) >= now)
-      : events.filter((ev) => new Date(ev.event_date) < now)
-  ).sort(
-    (a, b) =>
-      new Date(a.event_date).getTime() - new Date(b.event_date).getTime(),
-  );
+  const upcoming = events.filter((ev) => ev.status === "scheduled");
+  const past = events.filter((ev) => ev.status === "canceled");
 
-  const groupedEvents = groupBy(filteredEvents, (ev) => {
-    const date = new Date(ev.event_date);
-    return date.toISOString().split("T")[0];
-  });
+  const sortByDate = (a: EventDTO, b: EventDTO) =>
+    new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime();
 
-  const EventCard = ({ event }: { event: EventDTO }) => {
-    const evDate = new Date(event.event_date);
-    const day = evDate.getDate().toString().padStart(2, "0");
-    const month = evDate
-      .toLocaleString("pt-BR", { month: "short" })
-      .toUpperCase();
-
-    const typeColors: Record<string, string> = {
-      Culto: "#7C3AED",
-      Conferência: "#F97316",
-      Outro: "#3B82F6",
-    };
-    const color = typeColors[event.type ?? "Outro"] ?? "#3B82F6";
-
-    const formattedTime = evDate.toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-
-    return (
-      <Surface
-        style={[styles.card, { backgroundColor: theme.colors.surface }]}
-        elevation={4}
-      >
-        <TouchableOpacity
-          onPress={() =>
-            router.push({
-              pathname: "/events/event-details",
-              params: { eventId: event.id },
-            })
-          }
-          style={styles.cardTouchable}
-        >
-          <View style={[styles.sideDateBar, { backgroundColor: color }]}>
-            <Text style={styles.sideDateDay}>{day}</Text>
-            <Text style={styles.sideDateMonth}>{month}</Text>
-          </View>
-
-          <View style={styles.cardContent}>
-            <Chip
-              style={[styles.typeChip, { backgroundColor: color }]}
-              textStyle={{ color: "#fff", fontWeight: "700" }}
-            >
-              {event.type || "Evento"}
-            </Chip>
-
-            <Text
-              style={[styles.eventName, { color: theme.colors.onSurface }]}
-              numberOfLines={2}
-            >
-              {event.name}
-            </Text>
-
-            {event.description ? (
-              <Text
-                style={[
-                  styles.eventDescription,
-                  { color: theme.colors.onSurfaceVariant },
-                ]}
-                numberOfLines={3}
-              >
-                {event.description}
-              </Text>
-            ) : null}
-
-            <View style={styles.infoRow}>
-              <MaterialCommunityIcons
-                name="clock-outline"
-                size={16}
-                color={theme.colors.outline}
-              />
-              <Text style={[styles.infoText, { color: theme.colors.outline }]}>
-                {formattedTime}h
-              </Text>
-            </View>
-
-            <View style={styles.infoRow}>
-              <MaterialCommunityIcons
-                name="map-marker"
-                size={16}
-                color={theme.colors.outline}
-              />
-              <Text style={[styles.infoText, { color: theme.colors.outline }]}>
-                {" "}
-                {event.location || "Local não informado"}{" "}
-              </Text>
-            </View>
-          </View>
-        </TouchableOpacity>
-      </Surface>
-    );
+  const grouped = {
+    upcoming: groupBy(
+      upcoming.sort(sortByDate).filter((ev) => ev.eventDate),
+      (ev) => {
+        try {
+          return new Date(ev.eventDate!).toISOString().split("T")[0];
+        } catch {
+          return "Data inválida";
+        }
+      },
+    ),
+    past: groupBy(
+      past.sort(sortByDate).filter((ev) => ev.eventDate),
+      (ev) => {
+        try {
+          return new Date(ev.eventDate!).toISOString().split("T")[0];
+        } catch {
+          return "Data inválida";
+        }
+      },
+    ),
   };
 
   const formatDateLabel = (dateStr: string) => {
@@ -180,8 +93,69 @@ export default function EventsScreen() {
       .toLocaleString("pt-BR", { month: "short" })
       .toUpperCase();
     const weekday = date.toLocaleString("pt-BR", { weekday: "long" });
-    return `${day} ${month} • ${weekday.charAt(0).toUpperCase() + weekday.slice(1)}`;
+
+    return `${day} ${month} • ${
+      weekday.charAt(0).toUpperCase() + weekday.slice(1)
+    }`;
   };
+
+  const renderGroupedList = (groupedEvents: Record<string, EventDTO[]>) => (
+    <ScrollView
+      contentContainerStyle={{ paddingBottom: 100 }}
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={fetchEvents} />
+      }
+    >
+      {Object.entries(groupedEvents).map(
+        ([dateStr, eventsOnDay], index, array) => (
+          <View key={dateStr} style={{ marginBottom: 20 }}>
+            <View style={styles.dateRow}>
+              <View style={styles.timelineContainer}>
+                <View
+                  style={[
+                    styles.timelineCircle,
+                    { backgroundColor: theme.colors.primary },
+                  ]}
+                />
+                {index < array.length - 1 && (
+                  <View
+                    style={[
+                      styles.timelineLine,
+                      { backgroundColor: theme.colors.primary },
+                    ]}
+                  />
+                )}
+              </View>
+              <Text
+                style={[
+                  styles.dateLabel,
+                  { color: theme.colors.onSurfaceVariant },
+                ]}
+              >
+                {formatDateLabel(dateStr)}
+              </Text>
+            </View>
+
+            {eventsOnDay.map((event) => (
+              <EventCard key={event.id} event={event} />
+            ))}
+          </View>
+        ),
+      )}
+
+      {Object.keys(groupedEvents).length === 0 && (
+        <Text
+          style={[
+            styles.noEventsText,
+            { color: theme.colors.onSurfaceVariant },
+          ]}
+        >
+          Nenhum evento encontrado
+        </Text>
+      )}
+    </ScrollView>
+  );
 
   return (
     <SafeAreaView
@@ -189,7 +163,7 @@ export default function EventsScreen() {
     >
       <View style={styles.headerRow}>
         <Text style={[styles.title, { color: theme.colors.onBackground }]}>
-          Eventos
+          {t("schedule")}
         </Text>
         <TouchableOpacity onPress={() => console.log("Abrir filtros")}>
           <MaterialCommunityIcons
@@ -201,249 +175,97 @@ export default function EventsScreen() {
       </View>
 
       <View style={styles.tabsRow}>
-        <TouchableOpacity
-          onPress={() => setActiveTab("upcoming")}
-          style={[styles.tab, activeTab === "upcoming" && styles.tabActive]}
-        >
-          <Text
+        {["upcoming", "past", "calendar"].map((tab, index) => (
+          <TouchableOpacity
+            key={tab}
+            onPress={() => {
+              setActiveTab(tab as typeof activeTab);
+              pagerRef.current?.setPage(index);
+            }}
             style={[
-              styles.tabText,
-              activeTab === "upcoming" && styles.tabTextActive,
+              styles.tab,
+              activeTab === tab && {
+                borderBottomWidth: 3,
+                borderBottomColor: theme.colors.primary,
+              },
             ]}
           >
-            Próximos
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => setActiveTab("past")}
-          style={[styles.tab, activeTab === "past" && styles.tabActive]}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "past" && styles.tabTextActive,
-            ]}
-          >
-            Anteriores
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => setActiveTab("calendar")}
-          style={[styles.tab, activeTab === "calendar" && styles.tabActive]}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "calendar" && styles.tabTextActive,
-            ]}
-          >
-            Calendário
-          </Text>
-        </TouchableOpacity>
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === tab && {
+                  color: theme.colors.primary,
+                  fontWeight: "600",
+                },
+              ]}
+            >
+              {tab === "upcoming"
+                ? "Próximos"
+                : tab === "past"
+                  ? "Cancelados"
+                  : "Calendário"}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
-      {activeTab === "calendar" ? (
-        <View style={{ flex: 1 }}>
-          <CalendarView
+      <PagerView
+        style={{ flex: 1 }}
+        initialPage={0}
+        onPageSelected={(e) => {
+          const index = e.nativeEvent.position;
+          setActiveTab(
+            index === 0 ? "upcoming" : index === 1 ? "past" : "calendar",
+          );
+        }}
+        ref={pagerRef}
+      >
+        <View key="1">{renderGroupedList(grouped.upcoming)}</View>
+        <View key="2">{renderGroupedList(grouped.past)}</View>
+        <View key="3" style={{ flex: 1 }}>
+          {/* <CalendarView
             events={events}
             selectedDate={selectedDate}
             onSelectDate={setSelectedDate}
-          />
+          /> */}
         </View>
-      ) : (
-        <ScrollView
-          contentContainerStyle={{ paddingBottom: 100 }}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={fetchEvents} />
-          }
-        >
-          {Object.entries(groupedEvents).map(
-            ([dateStr, eventsOnDay], index, array) => (
-              <View key={dateStr} style={{ marginBottom: 20 }}>
-                <View style={styles.dateRow}>
-                  <View style={styles.timelineContainer}>
-                    <View style={styles.timelineCircle} />
-                    {index < array.length - 1 && (
-                      <View style={styles.timelineLine} />
-                    )}
-                  </View>
-                  <Text
-                    style={[
-                      styles.dateLabel,
-                      { color: theme.colors.onSurfaceVariant },
-                    ]}
-                  >
-                    {formatDateLabel(dateStr)}
-                  </Text>
-                </View>
-                {eventsOnDay.map((event) => (
-                  <EventCard key={event.id} event={event} />
-                ))}
-              </View>
-            ),
-          )}
+      </PagerView>
 
-          {filteredEvents.length === 0 && (
-            <Text
-              style={[
-                styles.noEventsText,
-                { color: theme.colors.onSurfaceVariant },
-              ]}
-            >
-              Nenhum evento encontrado
-            </Text>
-          )}
-        </ScrollView>
-      )}
-      <ButtonFloatAdd
-        pressAction={() => {
-          router.push("/events/insert");
-        }}
-      />
+      <ButtonFloatAdd pressAction={() => router.push("/events/insert")} />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingTop: 50,
-    paddingHorizontal: 16,
-  },
+  container: { flex: 1, paddingTop: 50, paddingHorizontal: 16 },
   headerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-  },
+  title: { fontSize: 28, fontWeight: "bold" },
   tabsRow: {
     flexDirection: "row",
     alignItems: "center",
     marginVertical: 16,
     justifyContent: "center",
   },
-  tab: {
-    marginLeft: 12,
-    paddingBottom: 6,
-  },
-  tabActive: {
-    borderBottomWidth: 3,
-    borderBottomColor: "#7C3AED",
-  },
-  tabText: {
-    fontSize: 16,
-    color: "#6B7280",
-  },
-  tabTextActive: {
-    color: "#7C3AED",
-    fontWeight: "600",
-  },
-  card: {
-    marginBottom: 16,
-    borderRadius: 16,
-    padding: 12,
-    elevation: 6,
-  },
-  cardTouchable: {
-    flexDirection: "row",
-    flex: 1,
-  },
-  sideDateBar: {
-    width: 60,
-    borderTopLeftRadius: 16,
-    borderBottomLeftRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 10,
-  },
-  sideDateDay: {
-    fontSize: 26,
-    fontWeight: "900",
-    color: "#fff",
-    lineHeight: 28,
-  },
-  sideDateMonth: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#fff",
-    textTransform: "uppercase",
-  },
-  cardContent: {
-    flex: 1,
-    padding: 12,
-    justifyContent: "space-between",
-  },
-  typeChip: {
-    alignSelf: "flex-start",
-    marginBottom: 8,
-    borderRadius: 12,
-  },
-  eventName: {
-    fontWeight: "700",
-    fontSize: 16,
-  },
-  eventDescription: {
-    fontSize: 13,
-    marginBottom: 8,
-  },
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 4,
-    gap: 6,
-  },
-  infoText: {
-    fontSize: 13,
-  },
+  tab: { marginLeft: 12, paddingBottom: 6 },
+  tabText: { fontSize: 16 },
   noEventsText: {
     textAlign: "center",
     padding: 20,
     fontSize: 14,
     fontStyle: "italic",
   },
-  floatingButton: {
-    position: "absolute",
-    bottom: 24,
-    right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 8,
-    shadowColor: "#000",
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-  },
-  dateLabel: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
+  dateLabel: { fontSize: 16, fontWeight: "600" },
   dateRow: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 8,
     marginTop: 16,
   },
-  timelineContainer: {
-    width: 20,
-    alignItems: "center",
-    marginRight: 8,
-  },
-  timelineCircle: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: "#7C3AED",
-  },
-  timelineLine: {
-    width: 2,
-    flex: 1,
-    backgroundColor: "#7C3AED",
-    marginTop: 2,
-  },
+  timelineContainer: { width: 20, alignItems: "center", marginRight: 8 },
+  timelineCircle: { width: 10, height: 10, borderRadius: 5 },
+  timelineLine: { width: 2, flex: 1, marginTop: 2 },
 });

@@ -70,4 +70,5 @@ export default {
   members_updated: "Membros atualizados com sucesso!",
   ministry_deleted: "Ministério excluído com sucesso!",
   no_events_today: "Nenhum evento para hoje",
+  schedule: "Agenda",
 };

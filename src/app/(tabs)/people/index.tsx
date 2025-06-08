@@ -74,13 +74,15 @@ export default function PeopleListScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       <Text style={[styles.headerTitle, { color: theme.colors.onBackground }]}>
         {t("people")}
       </Text>
 
       <TextInput
-        placeholder={t("search") || "Search"}
+        placeholder={t("search")}
         value={search}
         onChangeText={setSearch}
         style={[
@@ -152,10 +154,9 @@ export default function PeopleListScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingHorizontal: 16, paddingTop: 40 },
+  container: { flex: 1, paddingHorizontal: 16 },
   headerTitle: {
     fontSize: 28,
-    marginTop: 10,
     fontWeight: "bold",
   },
   headerSubtitle: {

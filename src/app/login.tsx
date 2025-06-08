@@ -71,6 +71,7 @@ export default function LoginScreen() {
           await setCurrentMinistry({
             id: coreMinistry.id,
             type: coreMinistry.type || "default",
+            name: coreMinistry.name,
           });
         }
       }

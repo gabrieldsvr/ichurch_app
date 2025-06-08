@@ -5,7 +5,8 @@ const STORAGE_KEY = "currentMinistry";
 
 interface Ministry {
   id: string;
-  type: "core" | "louvor" | "celula" | "default" | string; // pode expandir conforme o app
+  name: string;
+  type: "core" | "louvor" | "celula" | "default" | string;
 }
 
 interface MinistryContextProps {
