@@ -71,4 +71,8 @@ export default {
   ministry_deleted: "Ministério excluído com sucesso!",
   no_events_today: "Nenhum evento para hoje",
   schedule: "Agenda",
+  confirm_delete_ministry: "Tem certeza que deseja excluir este ministério?",
+  error_loading_ministry: "Erro ao carregar ministério",
+  manage_roles: "Gerenciar Funções",
+  permissions: "Permissões",
 };

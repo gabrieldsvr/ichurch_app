@@ -12,7 +12,6 @@ import {
   View,
 } from "react-native";
 import PagerView from "react-native-pager-view";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useTheme } from "react-native-paper";
 import { router } from "expo-router";
 import { groupBy } from "lodash";
@@ -23,6 +22,7 @@ import { EventCard } from "@/src/component/EventCard";
 import { ButtonFloatAdd } from "@/src/component/ButtonFloatAdd";
 import { EventDTO } from "@/src/dto/EventDTO";
 import { useTranslation } from "@/src/hook/useTranslation";
+import CalendarView from "@/src/component/CalendarView";
 
 export default function EventsScreen() {
   const theme = useTheme();
@@ -161,19 +161,6 @@ export default function EventsScreen() {
     <SafeAreaView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
-      <View style={styles.headerRow}>
-        <Text style={[styles.title, { color: theme.colors.onBackground }]}>
-          {t("schedule")}
-        </Text>
-        <TouchableOpacity onPress={() => console.log("Abrir filtros")}>
-          <MaterialCommunityIcons
-            name="filter-variant"
-            size={24}
-            color={theme.colors.onBackground}
-          />
-        </TouchableOpacity>
-      </View>
-
       <View style={styles.tabsRow}>
         {["upcoming", "past", "calendar"].map((tab, index) => (
           <TouchableOpacity
@@ -223,11 +210,11 @@ export default function EventsScreen() {
         <View key="1">{renderGroupedList(grouped.upcoming)}</View>
         <View key="2">{renderGroupedList(grouped.past)}</View>
         <View key="3" style={{ flex: 1 }}>
-          {/* <CalendarView
+          <CalendarView
             events={events}
             selectedDate={selectedDate}
             onSelectDate={setSelectedDate}
-          /> */}
+          />
         </View>
       </PagerView>
 
@@ -237,7 +224,7 @@ export default function EventsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingTop: 50, paddingHorizontal: 16 },
+  container: { flex: 1, paddingHorizontal: 16 },
   headerRow: {
     flexDirection: "row",
     justifyContent: "space-between",

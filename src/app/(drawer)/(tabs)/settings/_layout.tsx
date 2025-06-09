@@ -12,10 +12,13 @@ export default function SettingsLayout() {
           headerTintColor: theme.colors.onSurface,
         }}
       >
-        <Stack.Screen name="index" options={{ title: "Configurações" }} />
+        <Stack.Screen
+          name="index"
+          options={{ title: "Configurações", headerShown: false }}
+        />
         <Stack.Screen
           name="notifications"
-          options={{ title: "Notificações" }}
+          options={{ title: "Notificações", headerShown: false }}
         />
         <Stack.Screen
           name="ministry"

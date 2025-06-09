@@ -32,7 +32,7 @@ export const ALL_TABS: Record<TabKey, TabConfig> = {
   },
   events: {
     name: "events",
-    title: "Eventos",
+    title: "Agenda",
     icon: ({ color, size }) => (
       <Feather name="calendar" size={size ?? 24} color={color} />
     ),

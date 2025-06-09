@@ -11,16 +11,10 @@ import { Chip, Surface, useTheme } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useTranslation } from "@/src/hook/useTranslation";
+import { EventDTO } from "@/src/dto/EventDTO";
 
 interface CalendarViewProps {
-  events: {
-    id: string;
-    name: string;
-    event_date: string;
-    description?: string;
-    location?: string;
-    type?: string;
-  }[];
+  events: EventDTO[];
   selectedDate: string;
   onSelectDate: (date: string) => void;
 }
@@ -79,7 +73,7 @@ const CalendarView = ({
 
   const markedDates = events.reduce(
     (acc, ev) => {
-      const date = new Date(ev.event_date).toISOString().split("T")[0];
+      const date = new Date(ev.eventDate).toISOString().split("T")[0];
       acc[date] = {
         marked: true,
         dotColor: "#7C3AED",
@@ -92,7 +86,7 @@ const CalendarView = ({
   );
 
   const eventsForDay = events.filter((ev) =>
-    ev.event_date.startsWith(selectedDate),
+    ev.eventDate.startsWith(selectedDate),
   );
   const colorMap: Record<string, string> = {
     Culto: "#7C3AED",
@@ -125,7 +119,7 @@ const CalendarView = ({
       </Text>
 
       {eventsForDay.map((item) => {
-        const evDate = new Date(item.event_date);
+        const evDate = new Date(item.eventDate);
         const time = evDate.toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",

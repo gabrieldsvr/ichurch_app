@@ -6,7 +6,7 @@ import { SnackbarProvider } from "@/src/contexts/SnackbarProvider";
 import { AuthProvider } from "@/src/contexts/AuthProvider";
 import { MinistryProvider } from "@/src/contexts/MinistryProvider";
 
-export default function Layout() {
+export default function RootLayout() {
   const theme = useTheme();
 
   return (
@@ -23,7 +23,15 @@ export default function Layout() {
               >
                 <Stack.Screen name="login" options={{ headerShown: false }} />
                 <Stack.Screen name="index" options={{ headerShown: false }} />
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="(drawer)"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen name="people" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="ministry"
+                  options={{ headerShown: false }}
+                />
                 <Stack.Screen
                   name="register"
                   options={{ headerShown: false }}

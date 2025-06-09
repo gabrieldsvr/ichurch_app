@@ -18,34 +18,6 @@ function MinistryLayoutContent() {
     >
       {/* Tela principal ministry */}
       <Stack.Screen name="index" options={{ headerShown: false }} />
-
-      {/* Detalhe ministry */}
-      <Stack.Screen
-        name="ministry-detail"
-        options={{
-          title: "",
-          headerShown: true,
-          headerBackTitle: "", // oculta texto do botão voltar
-        }}
-      />
-
-      {/* Rotas de edição */}
-      <Stack.Screen
-        name="upsert-ministry"
-        options={{
-          title: "Editar Ministério",
-          headerShown: true,
-        }}
-      />
-      <Stack.Screen
-        name="upsert-cell-group"
-        options={{
-          title: "Editar Célula",
-          headerShown: true,
-        }}
-      />
-      {/* Se usar a rota dinâmica [id], defina se precisa de header */}
-      <Stack.Screen name="[id]" options={{ headerShown: false }} />
     </Stack>
   );
 }

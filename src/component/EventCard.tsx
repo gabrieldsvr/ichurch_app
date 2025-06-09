@@ -1,5 +1,3 @@
-// src/components/EventCard.tsx
-
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { Chip, Surface, Text, useTheme } from "react-native-paper";

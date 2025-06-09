@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   FlatList,
   RefreshControl,
+  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -28,9 +29,14 @@ export function MinistryCard({ ministry, onPress }: MinistryCardProps) {
   const visibilityInfo =
     VisibilityMetadata[ministry.visibility] || VisibilityMetadata["public"];
   const { t } = useTranslation();
+  const theme = useTheme();
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.8}>
+    <TouchableOpacity
+      style={[styles.card, { backgroundColor: theme.colors.surface }]}
+      onPress={onPress}
+      activeOpacity={0.8}
+    >
       <View
         style={[styles.iconContainer, { backgroundColor: meta.color + "33" }]}
       >
@@ -41,15 +47,26 @@ export function MinistryCard({ ministry, onPress }: MinistryCardProps) {
         />
       </View>
       <View style={styles.infoContainer}>
-        <Text style={styles.title} numberOfLines={1}>
+        <Text
+          style={[styles.title, { color: theme.colors.onSurface }]}
+          numberOfLines={1}
+        >
           {ministry.name}
         </Text>
-        <Text style={styles.subtitle} numberOfLines={1}>
+        <Text
+          style={[styles.subtitle, { color: theme.colors.onSurfaceVariant }]}
+          numberOfLines={1}
+        >
           {visibilityInfo.label}
         </Text>
       </View>
       <View style={styles.rightContainer}>
-        <Text style={styles.membersCount}>
+        <Text
+          style={[
+            styles.membersCount,
+            { color: theme.colors.onSurfaceVariant },
+          ]}
+        >
           {ministry.peopleCount ?? 0} {t("members")}
         </Text>
       </View>
@@ -96,15 +113,17 @@ export default function MinistryHome() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={[styles.headerTitle, { color: theme.colors.onBackground }]}>
-        {t("ministries")}
-      </Text>
-
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       {loading ? (
         <ActivityIndicator size="large" style={styles.loader} />
       ) : ministeries.length === 0 ? (
-        <Text style={styles.emptyText}>{t("no_ministries_found")}</Text>
+        <Text
+          style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}
+        >
+          {t("no_ministries_found")}
+        </Text>
       ) : (
         <FlatList
           showsVerticalScrollIndicator={false}
@@ -123,7 +142,7 @@ export default function MinistryHome() {
       <ButtonFloatAdd
         pressAction={() => router.push("/ministry/upsert-ministry")}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -131,29 +150,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingTop: 40,
   },
   loader: {
     marginTop: 30,
   },
   listContainer: {
     marginTop: 20,
+    paddingHorizontal: 5,
     paddingBottom: 20,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: "bold",
-    marginBottom: 10,
   },
   emptyText: {
     marginTop: 40,
     textAlign: "center",
     fontSize: 16,
-    color: "#999",
   },
   card: {
     flexDirection: "row",
-    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -178,11 +190,9 @@ const styles = StyleSheet.create({
   title: {
     fontWeight: "700",
     fontSize: 16,
-    color: "#222",
   },
   subtitle: {
     fontSize: 12,
-    color: "#666",
     marginTop: 2,
   },
   rightContainer: {
@@ -191,6 +201,5 @@ const styles = StyleSheet.create({
   },
   membersCount: {
     fontSize: 12,
-    color: "#666",
   },
 });

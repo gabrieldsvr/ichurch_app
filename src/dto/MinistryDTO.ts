@@ -1,6 +1,7 @@
 import { MinistryType } from "@/src/types/MinistryType";
+import { PeopleDTO } from "@/src/dto/PeopleDTO";
+import { MinistryVisibility } from "@/src/types/MinistryVisibility";
 
-export type Visibility = "public" | "secret" | "private";
 export type Status = "active" | "inactive";
 
 export interface MinistryDTO {
@@ -13,9 +14,10 @@ export interface MinistryDTO {
     | MinistryType.CELULA
     | MinistryType.LOUVOR
     | MinistryType.CANTINA;
-  visibility: Visibility;
+  visibility: MinistryVisibility;
   status: Status;
 
+  members?: PeopleDTO[];
   membersCount?: number; // campos agregados opcionais
   leadersCount?: number;
   auxCount?: number;

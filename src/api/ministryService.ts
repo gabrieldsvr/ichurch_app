@@ -41,7 +41,7 @@ export const getMinisteries = async (): Promise<MinistryDTO[]> => {
 export const getMinistryById = async (id: string) => {
   try {
     const response = await api.get(`/ministry/ministries/${id}`);
-    return response.data;
+    return response.data as MinistryDTO;
   } catch (error) {
     console.error("Erro ao buscar ministério:", error);
     throw error;
@@ -60,7 +60,7 @@ export const deleteMinistry = async (id: string) => {
 
 export const updateMinistryMembers = async (
   ministryId: string,
-  memberIds: string[],
+  memberIds: { id: string; role: "LEADER" | "AUX" | "MEMBER" }[],
 ) => {
   return api.patch(`/ministry/ministries/${ministryId}/members`, {
     members: memberIds,

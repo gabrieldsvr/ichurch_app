@@ -42,7 +42,7 @@ export default function MinistryForm() {
           const data = await getMinistryById(id);
           setName(data.name);
           setType(data.type);
-          setDescription(data.description);
+          setDescription(data.description || "");
           setVisibility(data.visibility);
         } catch {
           Alert.alert("Erro", "Erro ao carregar ministério.");

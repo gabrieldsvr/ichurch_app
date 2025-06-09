@@ -1,7 +1,6 @@
 import React, { useCallback, useState } from "react";
 import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 import { ActivityIndicator, Card, Text } from "react-native-paper";
-import Animated, { FadeInDown } from "react-native-reanimated";
 import { ThemeProvider, useAppTheme } from "@/src/contexts/ThemeProvider";
 import api from "@/src/api/api";
 import { useFocusEffect } from "expo-router";
@@ -46,19 +45,6 @@ export default function HomeScreen() {
       <View
         style={[styles.container, { backgroundColor: theme.colors.background }]}
       >
-        <Animated.Text
-          entering={FadeInDown.duration(600)}
-          style={[styles.title, { color: theme.colors.secondary }]}
-        >
-          📖 iChurch
-        </Animated.Text>
-        <Animated.Text
-          entering={FadeInDown.duration(800)}
-          style={[styles.subtitle, { color: theme.colors.secondary }]}
-        >
-          "Servindo com excelência, amando com propósito."
-        </Animated.Text>
-
         <Text style={[styles.sectionTitle, { color: theme.colors.secondary }]}>
           🙌 Ministérios
         </Text>
@@ -90,7 +76,7 @@ export default function HomeScreen() {
                   <Card.Content>
                     <Text style={styles.ministryName}>{item.name}</Text>
                     <Text style={styles.ministryInfo}>
-                      👥 Membros: {item.members || 0}
+                      {/*👥 Membros: {item.members || 0}*/} 0
                     </Text>
                   </Card.Content>
                 </TouchableOpacity>
@@ -134,7 +120,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 15,
-    paddingTop: 50,
   },
   title: {
     fontSize: 28,

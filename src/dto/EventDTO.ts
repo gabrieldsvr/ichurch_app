@@ -9,7 +9,7 @@ export interface EventDTO {
   description?: string | null;
   location?: string | null;
 
-  type?: string | null; // ex: "Culto", "Conferência", etc.
+  type?: string;
   status: "active" | "canceled" | "scheduled";
 
   ministryId?: string | null;
