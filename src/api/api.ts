@@ -44,7 +44,6 @@ api.interceptors.request.use(
       const method = config.method?.toUpperCase();
       const url = `${config.baseURL}${config.url}`;
       console.log(`[API REQUEST] ${method} ${url}`);
-      console.log(`[API HEADERS]`, config.headers);
     } catch (error) {
       console.error("Erro ao recuperar token:", error);
       await logToDiscord(

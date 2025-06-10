@@ -28,7 +28,7 @@ interface Ministry {
 
 interface UserDetail {
   id: string;
-  user_id?: string;
+  userId?: string;
   name: string;
   photo?: string;
   phone?: string;
@@ -58,6 +58,7 @@ export default function UserDetailsScreen() {
       try {
         setLoading(true);
         const response = await getUserById(id as string);
+        console.log(response.data);
         setUserDetail(response.data);
       } catch (error) {
         Alert.alert(t("error"), t("error_loading_user"));
@@ -166,28 +167,31 @@ export default function UserDetailsScreen() {
           </View>
         </View>
 
-        <View style={styles.actionButtons}>
-          <Button
-            mode="outlined"
-            onPress={() =>
-              router.push({
-                pathname: "/people/upsert",
-                params: { id: userDetail.id },
-              })
-            }
-            style={styles.editButton}
-          >
-            {t("edit")}
-          </Button>
-          <Button
-            mode="contained"
-            onPress={onDelete}
-            style={styles.deleteButton}
-          >
-            {t("delete")}
-          </Button>
-        </View>
-
+        {user?.isMaster ? (
+          <View style={styles.actionButtons}>
+            <Button
+              mode="outlined"
+              onPress={() =>
+                router.push({
+                  pathname: "/people/upsert",
+                  params: { id: userDetail.id },
+                })
+              }
+              style={styles.editButton}
+            >
+              {t("edit")}
+            </Button>
+            <Button
+              mode="contained"
+              onPress={onDelete}
+              style={styles.deleteButton}
+            >
+              {t("delete")}
+            </Button>
+          </View>
+        ) : (
+          <></>
+        )}
         <Divider style={{ marginVertical: 12 }} />
 
         <Text
@@ -250,7 +254,7 @@ export default function UserDetailsScreen() {
           )}
         </List.Section>
 
-        {!userDetail.user_id && user?.is_master === true ? (
+        {!userDetail.userId && user?.isMaster === true ? (
           <View
             style={[
               styles.buttonRow,

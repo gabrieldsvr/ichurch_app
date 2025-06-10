@@ -55,6 +55,7 @@ export default function EventUpsertScreen() {
       title: isEditing ? "Editar Evento" : "Cadastrar Evento",
     });
   }, [isEditing, navigation]);
+
   const {
     control,
     handleSubmit,
@@ -81,6 +82,7 @@ export default function EventUpsertScreen() {
       try {
         setLoading(true);
         const event = await getEventById(eventId);
+
         setValue("name", event.name);
         setValue("event_date", new Date(event.eventDate).toISOString());
         setValue("description", event.description || "");
@@ -135,6 +137,7 @@ export default function EventUpsertScreen() {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
+            {/* Nome do Evento */}
             <Controller
               control={control}
               name="name"
@@ -155,6 +158,7 @@ export default function EventUpsertScreen() {
               </Text>
             )}
 
+            {/* Tipo do Evento */}
             <Menu
               visible={menuVisible}
               onDismiss={() => setMenuVisible(false)}
@@ -186,15 +190,12 @@ export default function EventUpsertScreen() {
               </Text>
             )}
 
+            {/* Data do Evento */}
             <TouchableOpacity
               onPress={() => setShowDatePicker(true)}
               style={[styles.input, styles.dateInput]}
             >
-              <RNText
-                style={{
-                  color: theme.colors.onBackground,
-                }}
-              >
+              <RNText style={{ color: theme.colors.onBackground }}>
                 📅 {new Date(eventDate).toLocaleDateString("pt-BR")}
               </RNText>
             </TouchableOpacity>
@@ -217,6 +218,7 @@ export default function EventUpsertScreen() {
               </Text>
             )}
 
+            {/* Descrição */}
             <Controller
               control={control}
               name="description"
@@ -264,11 +266,6 @@ const styles = StyleSheet.create({
   },
   container: {
     padding: 20,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "bold",
-    marginBottom: 20,
   },
   input: {
     marginBottom: 16,

@@ -55,10 +55,15 @@ export default function LoginScreen() {
     try {
       setLoading(true);
       // const response = await api.post("/sca/auth/login", data);
+
       const response = await api.post("/sca/auth/login", {
         email: "ichurch@gmail.com",
         password: "12345678",
       });
+      // const response = await api.post("/sca/auth/login", {
+      //   email: "gabriel@gmail.com",
+      //   password: "adm123",
+      // });
       const { token, user } = response.data;
       await login({ token, user });
       await AsyncStorage.setItem("token", token);
@@ -77,7 +82,7 @@ export default function LoginScreen() {
       }
 
       Alert.alert("Sucesso", "Login realizado com sucesso!");
-      router.replace("/(tabs)");
+      router.replace("/(drawer)/(tabs)");
     } catch (error: any) {
       console.error("Erro ao fazer login:", error);
 

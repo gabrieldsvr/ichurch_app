@@ -30,9 +30,21 @@ export async function getEvents(params?: GetEventsParams): Promise<EventDTO[]> {
 }
 
 // 🔍 Buscar evento por ID
-export async function getEventById(id: string): Promise<EventDTO> {
-  const response = await api.get<EventDTO>(`/community/events/${id}`);
-  return response.data;
+export async function getEventById(
+  id: string,
+): Promise<EventDTO & { attendances: any[] }> {
+  const [event, attendances] = await Promise.all([
+    api.get<EventDTO>(`/community/events/${id}`),
+    api.get(`/community/attendance/${id}/by-event`, {
+      params: { event_id: id },
+    }),
+  ]);
+
+  console.log(event);
+  return {
+    ...event.data,
+    attendances: attendances.data,
+  };
 }
 
 // 🆕 Criar novo evento
@@ -58,4 +70,39 @@ export async function updateEvent(
 // ❌ Deletar evento
 export async function deleteEvent(id: string): Promise<void> {
   await api.delete(`/community/events/${id}`);
+}
+
+export async function getEventDetails(eventId: string) {
+  const res = await api.get(`/community/events/${eventId}`);
+  return res.data;
+}
+
+export async function getMinistryMembers(ministryId: string) {
+  const res = await api.get(`/ministry/ministries/${ministryId}/members`);
+  return res.data.filter((m) => m.status === "ativo");
+}
+
+export async function saveAttendances(
+  eventId: string,
+  personIds: string[],
+): Promise<void> {
+  try {
+    console.log(
+      "Saving attendances for event:",
+      eventId,
+      "with persons:",
+      personIds,
+    );
+
+    await api.post("/community/attendance/mark-multiple", {
+      event_id: eventId, // padronizado com backend
+      person_ids: personIds,
+    });
+  } catch (error: any) {
+    console.error(
+      "Erro ao salvar presenças:",
+      error?.response?.data || error.message,
+    );
+    throw new Error("Erro ao salvar presenças. Tente novamente.");
+  }
 }

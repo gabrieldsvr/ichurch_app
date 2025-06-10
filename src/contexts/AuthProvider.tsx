@@ -1,10 +1,10 @@
 // src/contexts/AuthProvider.tsx
 import React, {
   createContext,
-  useContext,
-  useState,
   ReactNode,
+  useContext,
   useEffect,
+  useState,
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -23,7 +23,7 @@ interface User {
   company_id: string;
   name: string;
   email: string;
-  is_master: boolean;
+  isMaster: boolean;
   status: string;
   createdAt: string;
   updatedAt: string;

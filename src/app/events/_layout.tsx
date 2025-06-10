@@ -19,6 +19,7 @@ export default function EventsLayout() {
         <Stack.Screen name="index" options={{ headerShown: false }} />
 
         <Stack.Screen name="upsert" options={{ title: "" }} />
+        <Stack.Screen name="event-checkout" options={{ title: "" }} />
         <Stack.Screen
           name="event-details"
           options={{

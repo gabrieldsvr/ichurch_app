@@ -5,20 +5,26 @@ import { useMinistry } from "@/src/contexts/MinistryProvider";
 import { ALL_TABS } from "@/src/constants/tabs";
 import { TABS_BY_MINISTRY_TYPE } from "@/src/constants/ministryTabsMap";
 import { View } from "react-native";
+import { TABS_MASTER_BY_MINISTRY_TYPE } from "@/src/constants/ministryTabsMasterMap";
+import { useAuth } from "@/src/contexts/AuthProvider";
 
 export default function TabsLayout() {
   const theme = useTheme();
   const navigation = useNavigation();
   const { currentMinistry } = useMinistry();
   const ministryType = currentMinistry?.type ?? "core";
-
-  // Quais tabs devem estar visíveis com base no tipo de ministério
+  const auth = useAuth();
+  const isMaster = auth.user?.isMaster ?? false;
   const visibleTabKeys = TABS_BY_MINISTRY_TYPE[ministryType] ?? [];
+  const visibleTabMasterKeys = TABS_MASTER_BY_MINISTRY_TYPE[ministryType] ?? [];
+
+  console.log(visibleTabKeys);
+  const TABS_TO_SHOW = isMaster ? visibleTabMasterKeys : visibleTabKeys;
 
   return (
     <Tabs>
       {Object.values(ALL_TABS).map((tab) => {
-        const isVisible = visibleTabKeys.includes(tab.name);
+        const isVisible = TABS_TO_SHOW.includes(tab.name);
 
         return (
           <Tabs.Screen

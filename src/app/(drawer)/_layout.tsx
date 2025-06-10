@@ -8,6 +8,7 @@ import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { Avatar, Text, useTheme } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuth } from "@/src/contexts/AuthProvider";
 
 export default function DrawerLayout() {
   const theme = useTheme();
@@ -34,6 +35,13 @@ export default function DrawerLayout() {
         options={{ drawerLabel: "Plano", title: "Plano" }}
       />
       <Drawer.Screen
+        name="checkin"
+        options={{
+          drawerLabel: "Checkin em evento",
+          title: "Checkin em evento",
+        }}
+      />
+      <Drawer.Screen
         name="settings"
         options={{
           drawerLabel: "Configurações",
@@ -56,11 +64,17 @@ export default function DrawerLayout() {
 function CustomDrawerContent(props: any) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const auth = useAuth();
 
   return (
     <View style={{ flex: 1 }}>
       {/* 🔝 TOPO COM SAFEAREA */}
-      <View style={[styles.headerContainer, { paddingTop: insets.top + 12 }]}>
+      <View
+        style={[
+          styles.headerContainer,
+          { paddingTop: insets.top + 12, marginBottom: insets.top + 12 },
+        ]}
+      >
         <TouchableOpacity
           style={styles.header}
           activeOpacity={0.8}
@@ -71,8 +85,8 @@ function CustomDrawerContent(props: any) {
             source={{ uri: "https://i.pravatar.cc/150?u=user" }}
           />
           <View style={styles.headerText}>
-            <Text style={styles.userName}>Gabriel Vargas</Text>
-            <Text style={styles.userEmail}>gabriel@email.com</Text>
+            <Text style={styles.userName}>{auth.user?.name}</Text>
+            <Text style={styles.userEmail}>{auth.user?.email}</Text>
             <Text style={styles.profileLink}>Ver perfil</Text>
           </View>
         </TouchableOpacity>

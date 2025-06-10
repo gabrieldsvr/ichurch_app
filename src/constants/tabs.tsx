@@ -6,6 +6,7 @@ export type TabKey =
   | "people"
   | "events"
   | "ministry"
+  | "ministries"
   | "repertory"
   | "settings";
 
@@ -35,6 +36,13 @@ export const ALL_TABS: Record<TabKey, TabConfig> = {
     title: "Agenda",
     icon: ({ color, size }) => (
       <Feather name="calendar" size={size ?? 24} color={color} />
+    ),
+  },
+  ministries: {
+    name: "ministries",
+    title: "Ministérios",
+    icon: ({ color, size }) => (
+      <Feather name="briefcase" size={size ?? 24} color={color} />
     ),
   },
   ministry: {

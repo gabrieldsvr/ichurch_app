@@ -15,6 +15,7 @@ import { router, useFocusEffect } from "expo-router";
 import { getUsers } from "@/src/api/peopleService"; // importe sua função real
 import { useTranslation } from "@/src/hook/useTranslation";
 import { ButtonFloatAdd } from "@/src/component/ButtonFloatAdd";
+import { useAuth } from "@/src/contexts/AuthProvider";
 
 interface Person {
   id: string;
@@ -55,6 +56,7 @@ export function PersonCard({ person, onPress }: PeopleCardProps) {
 export default function PeopleListScreen() {
   const theme = useTheme();
   const { t } = useTranslation();
+  const auth = useAuth();
 
   const [filterActive, setFilterActive] = useState<"filter">("filter");
   const [search, setSearch] = useState("");
@@ -150,11 +152,15 @@ export default function PeopleListScreen() {
         />
       )}
 
-      <ButtonFloatAdd
-        pressAction={() => {
-          router.push("/people/upsert");
-        }}
-      />
+      {auth.user?.isMaster ? (
+        <ButtonFloatAdd
+          pressAction={() => {
+            router.push("/people/upsert");
+          }}
+        />
+      ) : (
+        <></>
+      )}
     </View>
   );
 }

@@ -23,10 +23,12 @@ import { ButtonFloatAdd } from "@/src/component/ButtonFloatAdd";
 import { EventDTO } from "@/src/dto/EventDTO";
 import { useTranslation } from "@/src/hook/useTranslation";
 import CalendarView from "@/src/component/CalendarView";
+import { useAuth } from "@/src/contexts/AuthProvider";
 
 export default function EventsScreen() {
   const theme = useTheme();
   const { t } = useTranslation();
+  const auth = useAuth();
   const pagerRef = useRef<PagerView>(null);
 
   const [events, setEvents] = useState<EventDTO[]>([]);
@@ -224,7 +226,9 @@ export default function EventsScreen() {
         </View>
       </PagerView>
 
-      <ButtonFloatAdd pressAction={() => router.push("/events/upsert")} />
+      {auth.user?.isMaster ? (
+        <ButtonFloatAdd pressAction={() => router.push("/events/upsert")} />
+      ) : null}
     </SafeAreaView>
   );
 }

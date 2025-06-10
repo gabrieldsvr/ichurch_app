@@ -28,6 +28,7 @@ export default function HomeScreen() {
         });
       }
     } catch (error) {
+      console.log(error);
       console.error("Erro ao buscar ministérios:", error);
     } finally {
       setLoadingMinistries(false);
@@ -75,9 +76,6 @@ export default function HomeScreen() {
                 >
                   <Card.Content>
                     <Text style={styles.ministryName}>{item.name}</Text>
-                    <Text style={styles.ministryInfo}>
-                      {/*👥 Membros: {item.members || 0}*/} 0
-                    </Text>
                   </Card.Content>
                 </TouchableOpacity>
               )}
