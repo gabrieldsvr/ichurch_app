@@ -10,12 +10,9 @@ import {
 } from "react-native-paper";
 import { Alert, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import {
-  getEventById,
-  getMinistryMembers,
-  saveAttendances,
-} from "@/src/api/eventService";
+import { getEventById, saveAttendances } from "@/src/api/eventService";
 import { EventDTO } from "@/src/dto/EventDTO";
+import { getMinistryMembers } from "@/src/api/ministryService";
 
 interface FormDataMember {
   id: string;

@@ -66,3 +66,8 @@ export const updateMinistryMembers = async (
     members: memberIds,
   });
 };
+
+export async function getMinistryMembers(ministryId: string) {
+  const res = await api.get(`/ministry/ministries/${ministryId}/members`);
+  return res.data.filter((m) => m.status === "ativo");
+}

@@ -77,11 +77,6 @@ export async function getEventDetails(eventId: string) {
   return res.data;
 }
 
-export async function getMinistryMembers(ministryId: string) {
-  const res = await api.get(`/ministry/ministries/${ministryId}/members`);
-  return res.data.filter((m) => m.status === "ativo");
-}
-
 export async function saveAttendances(
   eventId: string,
   personIds: string[],
