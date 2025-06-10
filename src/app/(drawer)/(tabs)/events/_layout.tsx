@@ -9,7 +9,7 @@ export default function EventsLayout() {
       <Stack
         screenOptions={{
           headerStyle: {
-            backgroundColor: "#F5F5F5",
+            backgroundColor: theme.colors.background, // 🔥 Usa a cor de fundo do tema
           },
           headerShadowVisible: false,
           headerTintColor: theme.colors.primary,
@@ -17,18 +17,6 @@ export default function EventsLayout() {
         }}
       >
         <Stack.Screen name="index" options={{ headerShown: false }} />
-
-        <Stack.Screen name="insert" options={{ title: "Cadastrar Evento" }} />
-        <Stack.Screen name="edit" options={{ title: "Editar Evento" }} />
-        <Stack.Screen
-          name="event-details"
-          options={{
-            title: "",
-            headerShown: true,
-            headerBackTitle: "",
-          }}
-        />
-        <Stack.Screen name="[eventId]" options={{ headerShown: false }} />
       </Stack>
     </ThemeProvider>
   );

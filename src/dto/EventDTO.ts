@@ -1,18 +1,21 @@
 // src/dto/EventDTO.ts
 
+import { EventType } from "@/src/types/EventType";
+
 export interface EventDTO {
   id: string;
   companyId: string;
 
   name: string;
-  eventDate: string; // ISO 8601 datetime: "2025-06-05T19:00:00Z"
+  eventDate: string;
   description?: string | null;
   location?: string | null;
 
-  type?: string;
+  type: EventType;
   status: "active" | "canceled" | "scheduled";
 
   ministryId?: string | null;
+  ministryName?: string | null;
 
   createdAt: string;
   updatedAt: string;

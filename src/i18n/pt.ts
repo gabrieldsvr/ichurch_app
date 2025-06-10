@@ -75,4 +75,5 @@ export default {
   error_loading_ministry: "Erro ao carregar ministério",
   manage_roles: "Gerenciar Funções",
   permissions: "Permissões",
+  no_location: "Nenhum local encontrado",
 };

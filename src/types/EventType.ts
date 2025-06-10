@@ -1,0 +1,13 @@
+export type EventType =
+  | "CULT"
+  | "PRAYER"
+  | "BIBLE_STUDY"
+  | "DISCIPLESHIP"
+  | "TRAINING"
+  | "CONFERENCE"
+  | "RETREAT"
+  | "CELL_GROUP"
+  | "OUTREACH"
+  | "LEADER_MEETING"
+  | "MINISTRY_MEETING"
+  | "ASSEMBLY";

@@ -5,6 +5,8 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { EventDTO } from "@/src/dto/EventDTO";
 import { formatEventTime, getTypeColor } from "@/src/utils/eventsUtils";
+import { eventTypeLabels } from "@/src/constants/eventTypeLabels";
+import { useTranslation } from "@/src/hook/useTranslation";
 
 interface Props {
   event: EventDTO;
@@ -12,19 +14,20 @@ interface Props {
 
 export const EventCard = ({ event }: Props) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const evDate = new Date(event.eventDate);
 
   const day = evDate.getDate().toString().padStart(2, "0");
   const month = evDate
     .toLocaleString("pt-BR", { month: "short" })
     .toUpperCase();
-  const formattedTime = formatEventTime(evDate);
+  const formattedTime = formatEventTime(evDate) || "--:--";
   const color = getTypeColor(event.type, theme);
 
   return (
     <Surface
       style={[styles.card, { backgroundColor: theme.colors.surface }]}
-      elevation={4}
+      elevation={3}
     >
       <TouchableOpacity
         onPress={() =>
@@ -34,6 +37,8 @@ export const EventCard = ({ event }: Props) => {
           })
         }
         style={styles.cardTouchable}
+        accessibilityRole="button"
+        accessibilityLabel={`Evento: ${event.name}`}
       >
         {/* Lateral da Data */}
         <View style={[styles.sideDateBar, { backgroundColor: color }]}>
@@ -49,12 +54,19 @@ export const EventCard = ({ event }: Props) => {
 
         {/* Conteúdo do Card */}
         <View style={styles.cardContent}>
-          <Chip
-            style={[styles.typeChip, { backgroundColor: color }]}
-            textStyle={{ color: theme.colors.onPrimary, fontWeight: "700" }}
-          >
-            {event.type ?? "Evento"}
-          </Chip>
+          {!!event.type && (
+            <Chip
+              style={[styles.typeChip, { backgroundColor: color }]}
+              textStyle={{
+                color: theme.colors.onPrimary,
+                fontWeight: "700",
+                textTransform: "capitalize",
+              }}
+              compact
+            >
+              {eventTypeLabels[event.type]}
+            </Chip>
+          )}
 
           <Text
             style={[styles.eventName, { color: theme.colors.onSurface }]}
@@ -74,6 +86,16 @@ export const EventCard = ({ event }: Props) => {
               {event.description}
             </Text>
           )}
+          <View style={styles.infoRow}>
+            <MaterialCommunityIcons
+              name="account-group"
+              size={16}
+              color={theme.colors.outline}
+            />
+            <Text style={[styles.infoText, { color: theme.colors.outline }]}>
+              {event.ministryName ?? "Ministério não informado"}
+            </Text>
+          </View>
 
           <View style={styles.infoRow}>
             <MaterialCommunityIcons
@@ -93,7 +115,7 @@ export const EventCard = ({ event }: Props) => {
               color={theme.colors.outline}
             />
             <Text style={[styles.infoText, { color: theme.colors.outline }]}>
-              {event.location ?? "Local não informado"}
+              {event.location ?? t("no_location")}
             </Text>
           </View>
         </View>
@@ -135,7 +157,6 @@ const styles = StyleSheet.create({
   },
   typeChip: {
     alignSelf: "flex-start",
-    height: 24,
     marginBottom: 4,
   },
   eventName: {

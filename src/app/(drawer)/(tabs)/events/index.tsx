@@ -41,13 +41,19 @@ export default function EventsScreen() {
   const { currentMinistry } = useMinistry();
 
   useEffect(() => {
-    fetchEvents();
-  }, []);
+    if (currentMinistry?.id) {
+      fetchEvents();
+    }
+  }, [currentMinistry?.id]);
 
   const fetchEvents = async () => {
     try {
       setRefreshing(true);
-      const data = await getEvents({ ministry_id: currentMinistry?.id });
+      const isCore = currentMinistry?.type === "core";
+
+      const params = isCore ? {} : { ministry_id: currentMinistry?.id };
+
+      const data = await getEvents(params);
       setEvents(data);
     } catch (error) {
       console.error("Erro ao buscar eventos:", error);
@@ -218,7 +224,7 @@ export default function EventsScreen() {
         </View>
       </PagerView>
 
-      <ButtonFloatAdd pressAction={() => router.push("/events/insert")} />
+      <ButtonFloatAdd pressAction={() => router.push("/events/upsert")} />
     </SafeAreaView>
   );
 }

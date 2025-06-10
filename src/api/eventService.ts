@@ -12,6 +12,7 @@ export interface GetEventsParams {
 // 🔍 Buscar todos os eventos com filtros opcionais
 export async function getEvents(params?: GetEventsParams): Promise<EventDTO[]> {
   try {
+    console.log(params);
     const response = await api.get<EventDTO[]>("/community/events", { params });
 
     if (!Array.isArray(response.data)) {

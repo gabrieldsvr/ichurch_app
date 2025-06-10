@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -12,12 +12,6 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useTranslation } from "@/src/hook/useTranslation";
 import { EventDTO } from "@/src/dto/EventDTO";
-
-interface CalendarViewProps {
-  events: EventDTO[];
-  selectedDate: string;
-  onSelectDate: (date: string) => void;
-}
 
 // Configurações de idioma
 LocaleConfig.locales["pt-br"] = {
@@ -63,6 +57,12 @@ LocaleConfig.locales["pt-br"] = {
 };
 LocaleConfig.defaultLocale = "pt-br";
 
+interface CalendarViewProps {
+  events: EventDTO[];
+  selectedDate: string;
+  onSelectDate: (date: string) => void;
+}
+
 const CalendarView = ({
   events,
   selectedDate,
@@ -71,23 +71,26 @@ const CalendarView = ({
   const theme = useTheme();
   const { t } = useTranslation();
 
-  const markedDates = events.reduce(
-    (acc, ev) => {
-      const date = new Date(ev.eventDate).toISOString().split("T")[0];
-      acc[date] = {
-        marked: true,
-        dotColor: "#7C3AED",
-        selected: date === selectedDate,
-        selectedColor: date === selectedDate ? "#EDE9FE" : undefined,
-      };
-      return acc;
-    },
-    {} as Record<string, any>,
-  );
+  const markedDates = useMemo(() => {
+    return events.reduce(
+      (acc, ev) => {
+        const date = new Date(ev.eventDate).toISOString().split("T")[0];
+        acc[date] = {
+          marked: true,
+          dotColor: "#7C3AED",
+          selected: date === selectedDate,
+          selectedColor: date === selectedDate ? "#EDE9FE" : undefined,
+        };
+        return acc;
+      },
+      {} as Record<string, any>,
+    );
+  }, [events, selectedDate]);
 
-  const eventsForDay = events.filter((ev) =>
-    ev.eventDate.startsWith(selectedDate),
-  );
+  const eventsForDay = useMemo(() => {
+    return events.filter((ev) => ev.eventDate.startsWith(selectedDate));
+  }, [events, selectedDate]);
+
   const colorMap: Record<string, string> = {
     Culto: "#7C3AED",
     Conferência: "#F97316",
@@ -106,10 +109,15 @@ const CalendarView = ({
           selectedDayBackgroundColor: "#7C3AED",
           todayTextColor: "#7C3AED",
           dotColor: "#7C3AED",
+          arrowColor: theme.colors.primary,
+          monthTextColor: theme.colors.primary,
+          textSectionTitleColor: theme.colors.onSurfaceVariant,
         }}
       />
 
-      <Text style={styles.selectedDateLabel}>
+      <Text
+        style={[styles.selectedDateLabel, { color: theme.colors.onBackground }]}
+      >
         Eventos em{" "}
         {new Date(selectedDate).toLocaleDateString("pt-BR", {
           weekday: "long",
@@ -117,6 +125,18 @@ const CalendarView = ({
           month: "long",
         })}
       </Text>
+
+      {eventsForDay.length === 0 && (
+        <Text
+          style={{
+            textAlign: "center",
+            padding: 20,
+            color: theme.colors.onSurfaceVariant,
+          }}
+        >
+          {t("no_events_today")}
+        </Text>
+      )}
 
       {eventsForDay.map((item) => {
         const evDate = new Date(item.eventDate);
@@ -146,7 +166,7 @@ const CalendarView = ({
                 <Text style={[styles.name, { color: theme.colors.onSurface }]}>
                   {item.name}
                 </Text>
-                {item.description ? (
+                {!!item.description && (
                   <Text
                     style={[
                       styles.desc,
@@ -155,7 +175,20 @@ const CalendarView = ({
                   >
                     {item.description}
                   </Text>
-                ) : null}
+                )}
+                <View style={styles.infoRow}>
+                  <MaterialCommunityIcons
+                    name="account-group"
+                    size={16}
+                    color={theme.colors.outline}
+                  />
+                  <Text
+                    style={[styles.infoText, { color: theme.colors.outline }]}
+                  >
+                    {item.ministryName ?? "Ministério não informado"}
+                  </Text>
+                </View>
+
                 <View style={styles.infoRow}>
                   <MaterialCommunityIcons
                     name="clock-outline"
@@ -177,7 +210,7 @@ const CalendarView = ({
                   <Text
                     style={[styles.infoText, { color: theme.colors.outline }]}
                   >
-                    {item.location || "Local não informado"}
+                    {item.location || t("no_location")}
                   </Text>
                 </View>
               </View>
@@ -185,18 +218,6 @@ const CalendarView = ({
           </TouchableOpacity>
         );
       })}
-
-      {eventsForDay.length === 0 && (
-        <Text
-          style={{
-            textAlign: "center",
-            padding: 20,
-            color: theme.colors.onSurfaceVariant,
-          }}
-        >
-          {t("calendar.no_events_today")}
-        </Text>
-      )}
     </ScrollView>
   );
 };
@@ -207,8 +228,10 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginTop: 12,
     marginBottom: 8,
+    paddingHorizontal: 12,
   },
   card: {
+    marginHorizontal: 12,
     marginBottom: 12,
     borderRadius: 12,
     padding: 12,
