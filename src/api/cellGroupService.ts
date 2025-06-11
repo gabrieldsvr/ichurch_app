@@ -1,22 +1,31 @@
 import api from "@/src/api/api";
 
-export const createCellGroup = async (formData: FormData) => {
-  try {
-    const response = await api.post("/ministry/cell-groups", formData, {
-      headers: { "Content-Type": "application/json" },
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Erro ao criar célula:", error);
-    throw error;
-  }
+interface CreateCellGroupPayload {
+  name: string;
+  description?: string;
+  members: string[];
+}
+
+export const createCellGroup = async (ministryId: string, data: any) => {
+  return api.post("/ministry/cell-groups", {
+    ...data,
+    ministry_id: ministryId,
+  });
 };
 
-export const updateCellGroup = async (id: string, formData: FormData) => {
+export const updateCellGroup = async (
+  id: string,
+  data: {
+    name: string;
+    description?: string;
+    members: string[]; // ou outro tipo adequado
+  },
+) => {
   try {
-    const response = await api.put(`/ministry/cell-groups/${id}`, formData, {
+    const response = await api.put(`/ministry/cell-groups/${id}`, data, {
       headers: { "Content-Type": "application/json" },
     });
+    console.log("Célula atualizada com sucesso:", data);
     return response.data;
   } catch (error) {
     console.error("Erro ao atualizar célula:", error);

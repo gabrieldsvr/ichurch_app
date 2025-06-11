@@ -71,3 +71,7 @@ export async function getMinistryMembers(ministryId: string) {
   const res = await api.get(`/ministry/ministries/${ministryId}/members`);
   return res.data.filter((m) => m.status === "ativo");
 }
+
+export const getCellGroupsByMinistry = async (ministryId: string) => {
+  return api.get(`/ministry/ministries/${ministryId}/cell_groups`);
+};

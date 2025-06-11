@@ -32,6 +32,10 @@ export default function RootLayout() {
                   name="ministry"
                   options={{ headerShown: false }}
                 />
+                <Stack.Screen
+                  name="cell_group"
+                  options={{ headerShown: false }}
+                />
                 <Stack.Screen name="events" options={{ headerShown: false }} />
                 <Stack.Screen
                   name="register"

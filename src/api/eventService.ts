@@ -101,3 +101,9 @@ export async function saveAttendances(
     throw new Error("Erro ao salvar presenças. Tente novamente.");
   }
 }
+
+export async function getUpcomingEventsByMinistryId(ministryId: string) {
+  console.log("Fetching upcoming events for ministry:", ministryId);
+  const res = await api.get(`/community/events/upcoming/${ministryId}`);
+  return res.data;
+}

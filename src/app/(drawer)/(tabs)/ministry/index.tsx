@@ -167,21 +167,21 @@ export default function MinistryDetailsScreen() {
             </View>
           ))}
         </Card.Content>
-        <Card.Actions>
-          <Button onPress={() => setShowModal(true)}>
-            Ver todos os membros
-          </Button>
-        </Card.Actions>
       </Card>
 
       {/* Ação principal */}
       <Button
-        icon="home-group"
+        icon="cog"
         mode="contained"
         style={{ marginTop: 24 }}
-        onPress={() => router.push(`/ministery/${ministryId}/cell-groups`)}
+        onPress={() =>
+          router.push({
+            pathname: "/ministry/ministry-detail",
+            params: { id: ministryId },
+          })
+        }
       >
-        Abrir células
+        Gerenciar ministério
       </Button>
 
       {/* Modal */}

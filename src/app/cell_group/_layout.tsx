@@ -1,7 +1,7 @@
 import { Stack } from "expo-router";
 import { ThemeProvider, useAppTheme } from "@/src/contexts/ThemeProvider";
 
-export default function EventsLayout() {
+export default function CellGroupLayout() {
   const { theme } = useAppTheme(); // 🔥 Obtém o tema atual
 
   return (
@@ -17,14 +17,9 @@ export default function EventsLayout() {
         }}
       >
         <Stack.Screen name="upsert" options={{ title: "" }} />
-        <Stack.Screen name="event-checkout" options={{ title: "" }} />
         <Stack.Screen
-          name="event-details"
-          options={{
-            title: "Detalhes do Evento", // será exibido com botão de voltar
-            headerShown: true,
-            headerBackTitle: "",
-          }}
+          name="cell-group-detail"
+          options={{ title: "Detalhe de célula" }}
         />
       </Stack>
     </ThemeProvider>

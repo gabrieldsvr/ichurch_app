@@ -1,5 +1,9 @@
 import React from "react";
-import { Feather, FontAwesome } from "@expo/vector-icons";
+import {
+  Feather,
+  FontAwesome,
+  MaterialCommunityIcons,
+} from "@expo/vector-icons";
 
 export type TabKey =
   | "index"
@@ -8,6 +12,7 @@ export type TabKey =
   | "ministry"
   | "ministries"
   | "repertory"
+  | "cell_group"
   | "settings";
 
 interface TabConfig {
@@ -52,11 +57,12 @@ export const ALL_TABS: Record<TabKey, TabConfig> = {
       <Feather name="briefcase" size={size ?? 24} color={color} />
     ),
   },
-  repertory: {
-    name: "repertory",
-    title: "Repertório",
+  cell_group: {
+    name: "cell_group",
+    title: "Células",
     icon: ({ color, size }) => (
-      <Feather name="music" size={size ?? 24} color={color} />
+      // <Feather name="home-group" size={size ?? 24} color={color} />
+      <MaterialCommunityIcons name="home-group" size={24} color={color} />
     ),
   },
   settings: {
