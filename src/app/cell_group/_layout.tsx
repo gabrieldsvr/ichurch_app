@@ -21,6 +21,10 @@ export default function CellGroupLayout() {
           name="cell-group-detail"
           options={{ title: "Detalhe de célula" }}
         />
+        <Stack.Screen
+          name="cell-group-event-checkout"
+          options={{ title: "Prenseça no evento" }}
+        />
       </Stack>
     </ThemeProvider>
   );

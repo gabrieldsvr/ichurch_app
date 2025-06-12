@@ -18,7 +18,6 @@ export default function TabsLayout() {
   const visibleTabKeys = TABS_BY_MINISTRY_TYPE[ministryType] ?? [];
   const visibleTabMasterKeys = TABS_MASTER_BY_MINISTRY_TYPE[ministryType] ?? [];
 
-  console.log(visibleTabKeys);
   const TABS_TO_SHOW = isMaster ? visibleTabMasterKeys : visibleTabKeys;
 
   return (

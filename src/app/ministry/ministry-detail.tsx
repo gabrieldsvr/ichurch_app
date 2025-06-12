@@ -72,7 +72,7 @@ export default function MinistryDetailScreen() {
         );
       } catch (error) {
         Alert.alert(t("error"), t("error_loading_ministry"));
-        console.log(error);
+        console.error(error);
       } finally {
         setLoading(false);
       }

@@ -58,7 +58,6 @@ export default function EventDetailsScreen() {
       const { data } = await api.get(
         `/community/reports/event-presence/${eventId}`,
       );
-      console.log("Fetched event data:", data);
       setEvent(data.event);
     } catch {
       Alert.alert("Erro", "Não foi possível carregar o evento.");

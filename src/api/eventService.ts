@@ -12,7 +12,6 @@ export interface GetEventsParams {
 // 🔍 Buscar todos os eventos com filtros opcionais
 export async function getEvents(params?: GetEventsParams): Promise<EventDTO[]> {
   try {
-    console.log(params);
     const response = await api.get<EventDTO[]>("/community/events", { params });
 
     if (!Array.isArray(response.data)) {
@@ -40,7 +39,6 @@ export async function getEventById(
     }),
   ]);
 
-  console.log(event);
   return {
     ...event.data,
     attendances: attendances.data,
@@ -82,13 +80,6 @@ export async function saveAttendances(
   personIds: string[],
 ): Promise<void> {
   try {
-    console.log(
-      "Saving attendances for event:",
-      eventId,
-      "with persons:",
-      personIds,
-    );
-
     await api.post("/community/attendance/mark-multiple", {
       event_id: eventId, // padronizado com backend
       person_ids: personIds,
@@ -100,6 +91,18 @@ export async function saveAttendances(
     );
     throw new Error("Erro ao salvar presenças. Tente novamente.");
   }
+}
+
+export async function saveCellGroupAttendances(
+  eventId: string,
+  cellGroupId: string,
+  personIds: string[],
+) {
+  return api.post(`/community/attendance/cell-groups`, {
+    event_id: eventId,
+    cell_group_id: cellGroupId,
+    person_ids: personIds,
+  });
 }
 
 export async function getUpcomingEventsByMinistryId(ministryId: string) {

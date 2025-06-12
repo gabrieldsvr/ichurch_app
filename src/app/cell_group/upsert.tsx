@@ -157,7 +157,6 @@ export default function UpsertCellGroupScreen() {
       members: allMembers,
     };
 
-    console.log(data);
     try {
       if (isEditing) {
         await updateCellGroup(cellGroupId!, data);

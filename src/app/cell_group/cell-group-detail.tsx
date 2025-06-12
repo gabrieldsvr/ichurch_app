@@ -9,7 +9,7 @@ import {
   Text,
   useTheme,
 } from "react-native-paper";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { router, useLocalSearchParams, useRouter } from "expo-router";
 import {
   deleteCellGroup,
   getCellGroupDetail,
@@ -20,6 +20,7 @@ import { getUpcomingEventsByMinistryId } from "@/src/api/eventService";
 import { EventCard } from "@/src/component/EventCard";
 import { useAuth } from "@/src/contexts/AuthProvider";
 import { useTranslation } from "@/src/hook/useTranslation";
+import { CellGroupEventCard } from "@/src/component/CellGroupEventCard";
 
 export default function CellGroupDetailScreen() {
   const theme = useTheme();
@@ -40,7 +41,6 @@ export default function CellGroupDetailScreen() {
         const eventsRes = await getUpcomingEventsByMinistryId(
           currentMinistry.id,
         );
-        console.log(eventsRes);
         setEvents(eventsRes);
       } catch (error) {
         console.error("Erro ao buscar eventos:", error);
@@ -234,7 +234,20 @@ export default function CellGroupDetailScreen() {
               contentContainerStyle={styles.eventScrollContainer}
             >
               {events.map((event) => (
-                <EventCard key={event.id} event={event} />
+                <CellGroupEventCard
+                  key={event.id}
+                  event={event}
+                  action={() => {
+                    router.push({
+                      pathname: "/cell_group/cell-group-event-checkout",
+                      params: {
+                        eventId: event.id,
+                        ministryId: event?.ministryId,
+                        cellGroupId: cellGroup?.id,
+                      },
+                    });
+                  }}
+                />
               ))}
             </ScrollView>
           ) : (

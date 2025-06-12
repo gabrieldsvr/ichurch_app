@@ -58,7 +58,6 @@ export default function UserDetailsScreen() {
       try {
         setLoading(true);
         const response = await getUserById(id as string);
-        console.log(response.data);
         setUserDetail(response.data);
       } catch (error) {
         Alert.alert(t("error"), t("error_loading_user"));
