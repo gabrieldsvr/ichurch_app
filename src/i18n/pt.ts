@@ -76,4 +76,6 @@ export default {
   manage_roles: "Gerenciar Funções",
   permissions: "Permissões",
   no_location: "Nenhum local encontrado",
+  do_delete_user: "Excluir usuário?",
+  this_action_cannot_be_undone: "Essa ação não poderá ser desfeita.",
 };

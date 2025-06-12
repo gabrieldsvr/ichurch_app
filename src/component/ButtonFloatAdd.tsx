@@ -1,25 +1,26 @@
-import {StyleSheet, TouchableOpacity} from "react-native";
-import {MaterialCommunityIcons} from "@expo/vector-icons";
+import { StyleSheet, TouchableOpacity } from "react-native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
-import {useTheme} from "react-native-paper";
+import { useTheme } from "react-native-paper";
 
 interface ButtonFloatAddProps {
   pressAction?: () => void;
 }
-export const ButtonFloatAdd = ({pressAction}:ButtonFloatAddProps) => {
+export const ButtonFloatAdd = ({ pressAction }: ButtonFloatAddProps) => {
   const theme = useTheme();
   return (
-      <TouchableOpacity
-          style={[styles.floatingButton, {backgroundColor: theme.colors.primary}]}
-          onPress={pressAction}
-          activeOpacity={0.8}
-      >
-        <MaterialCommunityIcons name="plus" size={28} color="#fff"/>
-      </TouchableOpacity>
-  )
-
-}
-
+    <TouchableOpacity
+      style={[
+        styles.floatingButton,
+        { backgroundColor: theme.colors.primaryContainer },
+      ]}
+      onPress={pressAction}
+      activeOpacity={0.8}
+    >
+      <MaterialCommunityIcons name="plus" size={28} color="#fff" />
+    </TouchableOpacity>
+  );
+};
 
 const styles = StyleSheet.create({
   floatingButton: {

@@ -3,21 +3,21 @@ import { Alert, Image, ScrollView, StyleSheet, View } from "react-native";
 import {
   Avatar,
   Button,
-  Divider,
-  List,
-  Modal,
+  FAB,
   Text,
+  Modal,
   TextInput,
   useTheme,
+  Surface,
 } from "react-native-paper";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { deleteUser, getUserById } from "@/src/api/peopleService";
 import { useTranslation } from "@/src/hook/useTranslation";
-import { logToDiscord } from "@/src/api/logService";
-import api from "@/src/api/api";
-
 import { useSnackbar } from "@/src/contexts/SnackbarProvider";
 import { useAuth } from "@/src/contexts/AuthProvider";
+import api from "@/src/api/api";
+import { logToDiscord } from "@/src/api/logService";
+import { ModalCreateUserLogin } from "@/src/component/modal/ModalCreateUserLogin";
 
 interface Ministry {
   id: string;
@@ -33,66 +33,47 @@ interface UserDetail {
   photo?: string;
   phone?: string;
   email?: string;
+  type: string;
   address?: string;
   ministries?: Ministry[];
 }
 
 export default function UserDetailsScreen() {
-  const { id } = useLocalSearchParams();
   const theme = useTheme();
-  const { t } = useTranslation();
-  const { showMessage } = useSnackbar();
   const router = useRouter();
+  const { id } = useLocalSearchParams();
+  const { t } = useTranslation();
   const { user } = useAuth();
+  const { showMessage } = useSnackbar();
 
-  const [modalVisible, setModalVisible] = useState(false);
+  const [fabOpen, setFabOpen] = useState(false);
   const [userDetail, setUserDetail] = useState<UserDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
   const [email, setEmail] = useState("");
   const [success, setSuccess] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     if (!id) return;
-    const fetchUser = async () => {
-      try {
-        setLoading(true);
-        const response = await getUserById(id as string);
-        setUserDetail(response.data);
-      } catch (error) {
-        Alert.alert(t("error"), t("error_loading_user"));
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchUser();
   }, [id]);
-
-  const onDelete = () => {
-    Alert.alert(t("delete"), t("confirm_delete_user"), [
-      {
-        text: t("cancel"),
-        style: "cancel",
-      },
-      {
-        text: t("delete"),
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await deleteUser(id as string);
-            router.replace("/people");
-          } catch (error) {
-            Alert.alert(t("error"), t("error_deleting_user"));
-          }
-        },
-      },
-    ]);
-  };
 
   const onCreateLogin = () => {
     setModalVisible(true);
   };
 
+  const fetchUser = async () => {
+    try {
+      setLoading(true);
+      const response = await getUserById(id as string);
+      setUserDetail(response.data);
+    } catch (error) {
+      Alert.alert(t("error"), t("error_loading_user"));
+    } finally {
+      setLoading(false);
+    }
+  };
   const handleCreateAccount = async () => {
     if (!email) return;
 
@@ -106,8 +87,11 @@ export default function UserDetailsScreen() {
         is_master: false,
         person_id: id,
       });
-      setSuccess(true);
+      showMessage(t("user_create_success"));
       setModalVisible(false);
+      setEmail("");
+      setSuccess(true);
+      await fetchUser();
     } catch (error: any) {
       console.error("Erro ao criar conta:", error);
       await logToDiscord(`❌ Erro ao criar conta: ${error.message}`, "ERROR");
@@ -116,7 +100,7 @@ export default function UserDetailsScreen() {
     }
   };
 
-  if (loading) {
+  if (loading || !userDetail) {
     return (
       <View
         style={[
@@ -124,20 +108,7 @@ export default function UserDetailsScreen() {
           { backgroundColor: theme.colors.background },
         ]}
       >
-        <Text>{t("loading")}...</Text>
-      </View>
-    );
-  }
-
-  if (!userDetail) {
-    return (
-      <View
-        style={[
-          styles.loadingContainer,
-          { backgroundColor: theme.colors.background },
-        ]}
-      >
-        <Text>{t("user_not_found")}</Text>
+        <Text>{loading ? t("loading") : t("user_not_found")}</Text>
       </View>
     );
   }
@@ -146,167 +117,122 @@ export default function UserDetailsScreen() {
     <>
       <ScrollView
         style={[styles.container, { backgroundColor: theme.colors.background }]}
-        showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
+        <View style={styles.profileHeader}>
           {userDetail.photo ? (
             <Image
               source={{
                 uri: `https://ichurch-storage.s3.us-east-1.amazonaws.com/${userDetail.photo}`,
               }}
-              style={styles.avatar}
+              style={styles.avatarCentered}
             />
           ) : (
-            <Avatar.Icon size={80} icon="account" />
+            <Avatar.Icon
+              size={100}
+              icon="account"
+              style={styles.avatarCentered}
+            />
           )}
-          <View style={styles.headerText}>
-            <Text style={[styles.title, { color: theme.colors.onBackground }]}>
-              {userDetail.name}
-            </Text>
+          <Text style={styles.nameCentered}>{userDetail.name}</Text>
+          <Text style={styles.roleNote}>{userDetail.type}</Text>
+        </View>
+
+        <View style={styles.infoCard}>
+          <Text style={styles.sectionLabel}>{t("contact_details")}</Text>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>{t("phone")}</Text>
+            <Text>{userDetail.phone || t("no_data")}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>{t("email")}</Text>
+            <Text>{userDetail.email || t("no_data")}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>{t("address")}</Text>
+            <Text>{userDetail.address || t("no_data")}</Text>
           </View>
         </View>
 
-        {user?.isMaster ? (
-          <View style={styles.actionButtons}>
-            <Button
-              mode="outlined"
-              onPress={() =>
-                router.push({
-                  pathname: "/people/upsert",
-                  params: { id: userDetail.id },
-                })
-              }
-              style={styles.editButton}
-            >
-              {t("edit")}
-            </Button>
-            <Button
-              mode="contained"
-              onPress={onDelete}
-              style={styles.deleteButton}
-            >
-              {t("delete")}
-            </Button>
-          </View>
-        ) : (
-          <></>
-        )}
-        <Divider style={{ marginVertical: 12 }} />
-
-        <Text
-          style={[styles.sectionTitle, { color: theme.colors.onBackground }]}
-        >
-          {t("contact_details")}
-        </Text>
-
-        <List.Section>
-          <List.Item
-            title={userDetail.phone || t("no_data")}
-            titleNumberOfLines={1}
-            description={t("phone")}
-            left={(props) => <List.Icon {...props} icon="phone" />}
-          />
-          <List.Item
-            title={userDetail.email || t("no_data")}
-            titleNumberOfLines={1}
-            description={t("email")}
-            left={(props) => <List.Icon {...props} icon="email" />}
-          />
-          <List.Item
-            title={userDetail.address || t("no_data")}
-            titleNumberOfLines={2}
-            description={t("address")}
-            left={(props) => <List.Icon {...props} icon="map-marker" />}
-          />
-        </List.Section>
-
-        <Text
-          style={[styles.sectionTitle, { color: theme.colors.onBackground }]}
-        >
-          {t("ministries")}
-        </Text>
-
-        <List.Section>
+        <View style={styles.infoCard}>
+          <Text style={styles.sectionLabel}>{t("ministries")}</Text>
           {userDetail.ministries && userDetail.ministries.length > 0 ? (
             userDetail.ministries.map((ministry) => (
-              <List.Item
-                key={ministry.id}
-                title={ministry.name}
-                left={(props) => <List.Icon {...props} icon="account-group" />}
-                right={(props) => <List.Icon {...props} icon="chevron-right" />}
-                onPress={() =>
-                  router.push({
-                    pathname: "/ministry/ministry-detail",
-                    params: { id: ministry.id },
-                  })
-                }
-                style={{
-                  borderBottomWidth: 1,
-                  borderBottomColor: theme.colors.outline,
-                }}
-              />
+              <View key={ministry.id} style={styles.ministryRow}>
+                <Text>{ministry.name}</Text>
+                <Text style={styles.ministryRole}>Member</Text>
+              </View>
             ))
           ) : (
-            <Text style={{ padding: 12, color: theme.colors.onSurfaceVariant }}>
-              {t("no_ministries")}
-            </Text>
+            <Text>{t("no_ministries")}</Text>
           )}
-        </List.Section>
-
-        {!userDetail.userId && user?.isMaster === true ? (
-          <View
-            style={[
-              styles.buttonRow,
-              { backgroundColor: theme.colors.background },
-            ]}
-          >
-            <Button
-              mode="contained"
-              style={styles.createLoginButton}
-              onPress={onCreateLogin}
-            >
-              {t("create_login")}
-            </Button>
-          </View>
-        ) : (
-          <></>
-        )}
+        </View>
       </ScrollView>
 
-      {/* Modal com fundo desfocado */}
-      <Modal
-        visible={modalVisible}
-        onDismiss={() => {
-          setModalVisible(false);
-          setEmail("");
-          setSuccess(false);
-        }}
-        contentContainerStyle={styles.modalContentContainer}
-      >
-        {/* Conteúdo do modal */}
-        <View style={styles.modalContent}>
-          <>
-            <Text>{t("info_email_new_account")}:</Text>
-            <TextInput
-              label={t("email")}
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              style={styles.input}
-            />
-            <Button
-              mode="contained"
-              onPress={handleCreateAccount}
-              loading={loading}
-              disabled={!email}
-              style={{ marginTop: 16 }}
-            >
-              {t("create_account")}
-            </Button>
-          </>
-        </View>
-      </Modal>
+      <FAB.Group
+        open={fabOpen}
+        visible={true}
+        icon={fabOpen ? "close" : "dots-vertical"}
+        fabStyle={{ backgroundColor: theme.colors.primaryContainer }}
+        color={theme.colors.onPrimaryContainer}
+        onStateChange={({ open }) => setFabOpen(open)}
+        actions={[
+          {
+            icon: "pencil",
+            label: t("edit"),
+            color: theme.colors.onPrimaryContainer,
+            onPress: () =>
+              router.push({
+                pathname: "/people/upsert",
+                params: { id: userDetail.id },
+              }),
+          },
+          {
+            icon: "delete",
+            label: t("delete"),
+            color: theme.colors.error,
+            onPress: () =>
+              Alert.alert(
+                t("do_delete_user"),
+                t("this_action_cannot_be_undone"),
+                [
+                  { text: t("cancel"), style: "cancel" },
+                  {
+                    text: t("delete"),
+                    style: "destructive",
+                    onPress: async () => {
+                      try {
+                        await deleteUser(userDetail.id);
+                        router.replace("/people");
+                      } catch (err) {
+                        Alert.alert(t("error"), t("error_deleting_user"));
+                      }
+                    },
+                  },
+                ],
+              ),
+          },
+          ...(user?.isMaster && !userDetail.userId
+            ? [
+                {
+                  icon: "account-plus",
+                  label: t("create_login"),
+                  onPress: () => {
+                    onCreateLogin();
+                  },
+                },
+              ]
+            : []),
+        ]}
+      />
+      <ModalCreateUserLogin
+        modalVisible={modalVisible}
+        setModalVisible={setModalVisible}
+        email={email}
+        setEmail={setEmail}
+        loading={loading}
+        handleCreateAccount={handleCreateAccount}
+        t={t}
+      />
     </>
   );
 }
@@ -317,76 +243,88 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 20,
   },
-  input: {
-    marginBottom: 16,
-    backgroundColor: "transparent",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-  },
-  headerText: {
-    marginLeft: 16,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-  },
-  name: {
-    fontSize: 18,
-    marginTop: 4,
-  },
-  actionButtons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 12,
-  },
-  editButton: {
-    flex: 1,
-    marginRight: 10,
-  },
-  createLoginButton: {
-    flex: 1,
-  },
-  deleteButton: {
-    backgroundColor: "#D32F2F",
-    flex: 1,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginVertical: 8,
-  },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
-  buttonRow: {
-    paddingHorizontal: 24,
+  profileHeader: {
+    alignItems: "center",
+    marginVertical: 24,
+  },
+  avatarCentered: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 12,
+  },
+  nameCentered: {
+    fontSize: 22,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  roleNote: {
+    fontSize: 14,
+    color: "#888",
+    marginTop: 4,
+  },
+  infoCard: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    elevation: 1,
+  },
+  sectionLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 12,
+  },
+  infoRow: {
     flexDirection: "row",
-    justifyContent: "space-around",
-    paddingVertical: 10,
+    justifyContent: "space-between",
+    paddingVertical: 6,
   },
-  modalContentContainer: {
-    margin: 20,
+  infoLabel: {
+    fontWeight: "500",
+    color: "#666",
+  },
+  ministryRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: 8,
+  },
+  ministryRole: {
+    fontStyle: "italic",
+    color: "#444",
+  },
+  fab: {
+    position: "absolute",
+    right: 24,
+    bottom: 32,
+    backgroundColor: "#509BF8",
+  },
+  centeredContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 24,
+  },
+  modalSurface: {
+    width: "100%",
+    borderRadius: 16,
+    padding: 24,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: "500",
+    marginBottom: 12,
+  },
+  input: {
+    marginBottom: 12,
     backgroundColor: "transparent",
-    borderRadius: 8,
-    overflow: "hidden",
-    position: "relative",
-    minHeight: 180,
   },
-  modalContent: {
-    backgroundColor: "white",
-    borderRadius: 8,
-    padding: 20,
-    position: "relative",
-    zIndex: 10,
+  modalButton: {
+    marginTop: 8,
   },
 });
