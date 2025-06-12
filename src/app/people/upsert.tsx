@@ -1,128 +1,100 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
-  Image,
-  KeyboardAvoidingView,
-  Platform,
   SafeAreaView,
-  ScrollView,
   StyleSheet,
-  Text as RNText,
+  Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import {
-  Avatar,
-  Button,
-  RadioButton,
-  Text,
+  AnimatedFAB,
+  SegmentedButtons,
   TextInput,
   useTheme,
 } from "react-native-paper";
-
-import * as ImagePicker from "expo-image-picker";
-import { useLocalSearchParams, useRouter } from "expo-router";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useTranslation } from "@/src/hook/useTranslation";
+import * as ImagePicker from "expo-image-picker";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Controller, useForm } from "react-hook-form";
-import { createUser, getUserById, updateUser } from "@/src/api/peopleService";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import { AvatarWithCamera } from "@/src/component/AvatarWithCamera";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { router, useLocalSearchParams } from "expo-router";
+import { createUser } from "@/src/api/peopleService";
 
-interface FormData {
-  name: string;
-  birthDate: string;
-  email: string;
-  phone: string;
-  address: string;
-  type: "visitor" | "regular_attendee" | "member";
-}
+const schema = yup.object().shape({
+  name: yup.string().required("Nome é obrigatório"),
+  email: yup
+    .string()
+    .nullable()
+    .transform((value) => (value === "" ? null : value))
+    .email("E-mail inválido"),
+  phone: yup
+    .string()
+    .nullable()
+    .transform((value) => (value === "" ? null : value)),
+  address: yup
+    .string()
+    .nullable()
+    .transform((value) => (value === "" ? null : value)),
+});
 
 export default function RegisterMemberScreen() {
-  const { id } = useLocalSearchParams<{ id?: string }>();
-
   const theme = useTheme();
-  const router = useRouter();
-  const { t } = useTranslation();
-
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const insets = useSafeAreaInsets();
   const [imageUri, setImageUri] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [type, setType] = useState("member");
+  const [birthDate, setBirthDate] = useState<Date | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [isExtended, setIsExtended] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const { id } = useLocalSearchParams();
 
   const {
     control,
     handleSubmit,
-    watch,
-    setValue,
     formState: { errors },
-  } = useForm<FormData>({
+  } = useForm({
+    resolver: yupResolver(schema),
     defaultValues: {
       name: "",
-      birthDate: "",
-      email: "",
-      phone: "",
-      address: "",
-      type: "member",
+      email: null,
+      phone: null,
+      address: null,
     },
   });
 
-  useEffect(() => {
-    async function loadUser() {
-      setIsLoading(true);
-      try {
-        if (!id) return;
-        const response = await getUserById(id);
-        const userData = response.data;
-
-        setValue("name", userData.name);
-        setValue("birthDate", userData.birth_date);
-        setValue("email", userData.email);
-        setValue("phone", userData.phone);
-        setValue("address", userData.address);
-        setValue("type", userData.type);
-
-        if (userData.photo) {
-          const photoUrl = `https://ichurch-storage.s3.us-east-1.amazonaws.com/${userData.photo}`;
-          setImageUri(photoUrl);
-        }
-      } catch (error) {
-        console.error("Erro ao carregar usuário para edição", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadUser();
-  }, [id]);
-
-  const birthDateValue = watch("birthDate");
-  const birthDateObj = birthDateValue ? new Date(birthDateValue) : null;
-
-  async function pickImage() {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== "granted") {
-      alert(t("permission_camera_required"));
-      return;
-    }
-
+  const pickImage = async () => {
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       quality: 0.7,
     });
-
     if (!result.canceled && result.assets.length > 0) {
       setImageUri(result.assets[0].uri);
     }
-  }
+  };
 
-  function onChangeDate(_: any, selectedDate?: Date) {
-    if (Platform.OS !== "ios") setShowDatePicker(false);
-    if (selectedDate) {
-      setValue("birthDate", selectedDate.toISOString().split("T")[0], {
-        shouldValidate: true,
-      });
-    }
-  }
+  const handleDateChange = (_: any, selectedDate?: Date) => {
+    setShowDatePicker(false);
+    if (selectedDate) setBirthDate(selectedDate);
+  };
 
-  async function onSave(data: FormData) {
+  const formatPhone = (value: string) => {
+    if (!value) return "";
+    const cleaned = value.replace(/\D/g, "").slice(0, 11);
+    const match = cleaned.match(/^(\d{0,2})(\d{0,5})(\d{0,4})$/);
+    if (!match) return value;
+    const [, ddd, first, second] = match;
+    if (second) return `(${ddd}) ${first}-${second}`;
+    if (first) return `(${ddd}) ${first}`;
+    if (ddd) return `(${ddd}`;
+    return "";
+  };
+
+  async function onSubmit(data: any) {
     if (isLoading) return;
 
     try {
@@ -131,11 +103,11 @@ export default function RegisterMemberScreen() {
 
       const sanitizedData: Record<string, string> = {
         name: data.name || "",
-        birth_date: data.birthDate || "",
-        email: data.email,
-        phone: data.phone,
-        address: data.address,
-        type: data.type || "member",
+        birth_date: birthDate ? birthDate.toISOString().split("T")[0] : "",
+        email: data.email || "",
+        phone: data.phone || "",
+        address: data.address || "",
+        type: type || "member",
       };
 
       Object.entries(sanitizedData).forEach(([key, value]) => {
@@ -151,272 +123,223 @@ export default function RegisterMemberScreen() {
       }
 
       if (id) {
-        await updateUser(id as string, formData);
+        console.log("Updating user with ID:", id, "and data:", formData);
+        // await updateUser(id, formData);
       } else {
+        console.log("Creating new user with data:", formData);
         await createUser(formData);
       }
 
       router.replace("/people");
     } catch (error) {
-      console.error("Erro ao manipular usuário:", error);
+      console.error("Erro ao salvar usuário:", error);
     } finally {
       setIsLoading(false);
     }
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView
-        style={styles.flexContainer}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <KeyboardAwareScrollView
+        contentContainerStyle={[
+          styles.container,
+          {
+            backgroundColor: theme.colors.background,
+            paddingBottom: insets.bottom + 100,
+          },
+        ]}
+        enableOnAndroid
+        enableAutomaticScroll
+        keyboardOpeningTime={0}
+        extraScrollHeight={100}
+        keyboardShouldPersistTaps="handled"
+        onScroll={(event) =>
+          setIsExtended(event.nativeEvent.contentOffset.y <= 0)
+        }
+        scrollEventThrottle={16}
       >
-        <View style={styles.flexContainer}>
-          <ScrollView
-            contentContainerStyle={[
-              styles.container,
-              { backgroundColor: theme.colors.background, paddingBottom: 100 },
-            ]}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            <View style={styles.header}>
-              <Text
-                style={[styles.title, { color: theme.colors.onBackground }]}
-              >
-                {id ? t("edit_member") : t("insert_new_member")}
+        <AvatarWithCamera imageUri={imageUri} onPressCamera={pickImage} />
+
+        <SegmentedButtons
+          value={type}
+          onValueChange={setType}
+          buttons={[
+            {
+              value: "member",
+              label: "Membro",
+              style: { borderColor: theme.colors.primary },
+              checkedColor: theme.colors.onPrimary,
+            },
+            {
+              value: "regular_attendee",
+              label: "Frequente",
+              style: { borderColor: theme.colors.primary },
+              checkedColor: theme.colors.onPrimary,
+            },
+            {
+              value: "visitor",
+              label: "Visitante",
+              style: { borderColor: theme.colors.primary },
+              checkedColor: theme.colors.onPrimary,
+            },
+          ]}
+          style={[styles.segmented]}
+        />
+
+        {/* Nome */}
+        <Controller
+          control={control}
+          name="name"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <View>
+              <TextInput
+                label="Nome completo*"
+                mode="outlined"
+                style={styles.input}
+                onBlur={onBlur}
+                onChangeText={onChange}
+                value={value}
+                error={!!errors.name}
+              />
+              <Text style={[styles.errorText, { color: theme.colors.error }]}>
+                {errors.name?.message || " "}
               </Text>
             </View>
+          )}
+        />
 
-            <Button
-              mode="outlined"
-              onPress={pickImage}
-              style={[styles.button, { backgroundColor: theme.colors.surface }]}
-              textColor={theme.colors.onSurface}
-            >
-              {imageUri ? t("change_photo") : t("take_photo")}
-            </Button>
-
-            {imageUri ? (
-              <Image source={{ uri: imageUri }} style={styles.imagePreview} />
-            ) : (
-              <Avatar.Icon
-                size={120}
-                icon="account"
-                style={styles.imagePreview}
+        {/* Email */}
+        <Controller
+          control={control}
+          name="email"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <View>
+              <TextInput
+                label="E-mail"
+                mode="outlined"
+                keyboardType="email-address"
+                style={styles.input}
+                onBlur={onBlur}
+                onChangeText={onChange}
+                value={value || ""}
+                error={!!errors.email}
               />
-            )}
-
-            <Text style={styles.sectionLabel}>{t("type_member")}</Text>
-            <Controller
-              control={control}
-              name="type"
-              render={({ field: { onChange, value } }) => (
-                <RadioButton.Group onValueChange={onChange} value={value}>
-                  <View style={styles.radioGroup}>
-                    <View style={styles.radioItem}>
-                      <RadioButton value="member" />
-                      <Text>{t("member")}</Text>
-                    </View>
-                    <View style={styles.radioItem}>
-                      <RadioButton value="regular_attendee" />
-                      <Text>{t("regular_attendee")}</Text>
-                    </View>
-                    <View style={styles.radioItem}>
-                      <RadioButton value="visitor" />
-                      <Text>{t("visitor")}</Text>
-                    </View>
-                  </View>
-                </RadioButton.Group>
-              )}
-            />
-
-            {/* Reutilização dos campos de formulário */}
-            {[
-              {
-                name: "name",
-                label: t("full_name"),
-                rules: { required: t("requiredField") },
-              },
-              {
-                name: "email",
-                label: t("email"),
-                keyboardType: "email-address",
-                rules: {
-                  pattern: {
-                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                    message: t("invalidEmail"),
-                  },
-                },
-              },
-              {
-                name: "phone",
-                label: t("phone"),
-                keyboardType: "phone-pad",
-                rules: {
-                  pattern: {
-                    value: /^\+?[\d\s()-]{7,}$/,
-                    message: t("invalidPhone"),
-                  },
-                },
-              },
-              { name: "address", label: t("address"), multiline: true },
-            ].map(({ name, label, ...rest }) => (
-              <Controller
-                key={name}
-                control={control}
-                name={name as keyof FormData}
-                rules={rest.rules}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <TextInput
-                    label={label}
-                    onBlur={onBlur}
-                    onChangeText={onChange}
-                    value={value}
-                    style={styles.input}
-                    mode="flat"
-                    multiline={rest.multiline}
-                    autoCapitalize="none"
-                    error={!!errors[name as keyof FormData]}
-                  />
-                )}
-              />
-            ))}
-
-            {errors.name && (
               <Text style={[styles.errorText, { color: theme.colors.error }]}>
-                {errors.name.message}
+                {errors.email?.message || " "}
               </Text>
-            )}
-            {errors.email && (
-              <Text style={[styles.errorText, { color: theme.colors.error }]}>
-                {errors.email.message}
-              </Text>
-            )}
-            {errors.phone && (
-              <Text style={[styles.errorText, { color: theme.colors.error }]}>
-                {errors.phone.message}
-              </Text>
-            )}
-
-            {/* Date Picker */}
-            <TouchableOpacity
-              onPress={() => setShowDatePicker(true)}
-              style={[styles.input, styles.dateInput]}
-              activeOpacity={0.7}
-            >
-              <RNText
-                style={{
-                  color: birthDateObj
-                    ? theme.colors.onBackground
-                    : theme.colors.outline,
-                }}
-              >
-                {birthDateObj
-                  ? birthDateObj.toLocaleDateString()
-                  : t("birth_date")}
-              </RNText>
-            </TouchableOpacity>
-            {showDatePicker && (
-              <DateTimePicker
-                value={birthDateObj ?? new Date()}
-                mode="date"
-                display="default"
-                maximumDate={new Date()}
-                onChange={onChangeDate}
-              />
-            )}
-            {errors.birthDate && (
-              <Text style={[styles.errorText, { color: theme.colors.error }]}>
-                {errors.birthDate.message}
-              </Text>
-            )}
-
-            <View
-              style={[
-                styles.buttonRow,
-                { backgroundColor: theme.colors.background },
-              ]}
-            >
-              <Button
-                mode="contained"
-                onPress={handleSubmit(onSave)}
-                style={styles.saveButton}
-                loading={isLoading}
-                disabled={isLoading}
-              >
-                {id ? t("update") : t("save")}
-              </Button>
             </View>
-          </ScrollView>
-        </View>
-      </KeyboardAvoidingView>
+          )}
+        />
+
+        {/* Telefone */}
+        <Controller
+          control={control}
+          name="phone"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <View>
+              <TextInput
+                label="Telefone"
+                mode="outlined"
+                keyboardType="phone-pad"
+                style={styles.input}
+                onBlur={onBlur}
+                value={formatPhone(value || "")}
+                onChangeText={(text) => onChange(text.replace(/\D/g, ""))}
+                error={!!errors.phone}
+              />
+              <Text style={[styles.errorText, { color: theme.colors.error }]}>
+                {errors.phone?.message || " "}
+              </Text>
+            </View>
+          )}
+        />
+
+        {/* Endereço */}
+        <Controller
+          control={control}
+          name="address"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <View>
+              <TextInput
+                label="Endereço"
+                mode="outlined"
+                multiline
+                numberOfLines={2}
+                style={styles.input}
+                onBlur={onBlur}
+                onChangeText={onChange}
+                value={value || ""}
+                error={!!errors.address}
+              />
+              <Text style={[styles.errorText, { color: theme.colors.error }]}>
+                {errors.address?.message || " "}
+              </Text>
+            </View>
+          )}
+        />
+
+        {/* Data de nascimento */}
+        <TouchableOpacity
+          onPress={() => setShowDatePicker(true)}
+          accessibilityRole="button"
+        >
+          <TextInput
+            label="Data de nascimento"
+            value={birthDate ? birthDate.toLocaleDateString() : ""}
+            mode="outlined"
+            editable={false}
+            right={<TextInput.Icon icon="calendar" />}
+            style={styles.input}
+          />
+        </TouchableOpacity>
+
+        {showDatePicker && (
+          <DateTimePicker
+            value={birthDate || new Date()}
+            mode="date"
+            display="default"
+            maximumDate={new Date()}
+            onChange={handleDateChange}
+          />
+        )}
+      </KeyboardAwareScrollView>
+
+      <AnimatedFAB
+        icon="check"
+        label="Salvar"
+        extended={isExtended}
+        onPress={handleSubmit(onSubmit)}
+        style={[
+          styles.fab,
+          {
+            right: 16,
+            bottom: insets.bottom + 16,
+            backgroundColor: theme.colors.primary,
+          },
+        ]}
+        color={theme.colors.onPrimary}
+        animateFrom="right"
+        iconMode="dynamic"
+      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
-  flexContainer: {
-    flex: 1,
-  },
   container: {
-    paddingHorizontal: 24,
+    padding: 24,
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
+  segmented: {
     marginBottom: 24,
-    justifyContent: "center",
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "bold",
   },
   input: {
-    marginBottom: 16,
-    backgroundColor: "transparent",
-  },
-  dateInput: {
-    justifyContent: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 12,
-    borderBottomWidth: 1,
-    borderColor: "rgba(186,186,186,0.86)",
-  },
-  imagePreview: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    alignSelf: "center",
-    marginVertical: 10,
-  },
-  button: {
-    marginTop: 10,
-  },
-  buttonRow: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-  },
-  saveButton: {
-    flex: 1,
+    marginBottom: 4,
   },
   errorText: {
-    marginBottom: 10,
+    fontSize: 12,
+    marginBottom: 12,
   },
-  sectionLabel: {
-    marginBottom: 8,
-    fontWeight: "bold",
-  },
-  radioGroup: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginBottom: 16,
-  },
-  radioItem: {
-    flexDirection: "row",
-    alignItems: "center",
+  fab: {
+    position: "absolute",
   },
 });

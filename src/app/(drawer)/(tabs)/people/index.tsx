@@ -9,11 +9,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useTheme, TextInput } from "react-native-paper";
+import { FAB, TextInput, useTheme } from "react-native-paper";
 import { router, useFocusEffect } from "expo-router";
 import { getUsers } from "@/src/api/peopleService";
 import { useTranslation } from "@/src/hook/useTranslation";
-import { ButtonFloatAdd } from "@/src/component/ButtonFloatAdd";
 import { useAuth } from "@/src/contexts/AuthProvider";
 import { PeopleDTO } from "@/src/dto/PeopleDTO";
 
@@ -159,14 +158,21 @@ export default function PeopleListScreen() {
         />
       )}
       {auth.user?.isMaster ? (
-        <ButtonFloatAdd
-          pressAction={() => {
+        <FAB
+          icon="plus"
+          style={{
+            position: "absolute",
+            right: 16,
+            bottom: 16,
+            backgroundColor: theme.colors.primary,
+          }}
+          color={theme.colors.onPrimary}
+          onPress={() => {
             router.push("/people/upsert");
           }}
+          accessibilityLabel="Adicionar nova pessoa"
         />
-      ) : (
-        <></>
-      )}
+      ) : null}
     </View>
   );
 }
