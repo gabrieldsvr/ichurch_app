@@ -8,105 +8,97 @@ export const DarkTheme: MD3Theme = {
     ...MD3DarkTheme.colors,
     ...NavigationDarkTheme.colors,
 
-    /** 🔵 Cores principais */
-    primary: "#2B4678",
-    onPrimary: "#FFFFFF",
-    primaryContainer: "#1A2B4A",
-    onPrimaryContainer: "#E0E0E0",
+    /** 🌙 Material Theme Builder Colors (Dark) */
+    primary: "#A5C8FF",
+    onPrimary: "#00315F",
+    primaryContainer: "#509BF8",
+    onPrimaryContainer: "#003260",
 
-    /** 🟣 Secundária */
-    secondary: "#BFC6DC",
-    onSecondary: "#121212",
-    secondaryContainer: "#40485A",
-    onSecondaryContainer: "#E5E8F0",
+    secondary: "#AFC8F1",
+    onSecondary: "#173152",
+    secondaryContainer: "#324A6C",
+    onSecondaryContainer: "#A1BAE2",
 
-    /** 🟢 Terciária */
-    tertiary: "#8A8C95",
-    onTertiary: "#E0E0E0",
-    tertiaryContainer: "#2F313A",
-    onTertiaryContainer: "#F0F0F0",
+    tertiary: "#F2AFFF",
+    onTertiary: "#54036A",
+    tertiaryContainer: "#CA7BDD",
+    onTertiaryContainer: "#55056B",
 
-    /** ⚠️ Erro */
-    error: "#CF6679",
-    onError: "#FFFFFF",
-    errorContainer: "#8A1A28",
+    background: "#101319",
+    onBackground: "#E0E2EA",
+
+    surface: "#101319",
+    onSurface: "#E0E2EA",
+    surfaceVariant: "#414752",
+    onSurfaceVariant: "#C1C6D4",
+
+    error: "#FFB4AB",
+    onError: "#690005",
+    errorContainer: "#93000A",
     onErrorContainer: "#FFDAD6",
 
-    /** ☁️ Superfícies */
-    background: "#121212",
-    onBackground: "#B0B0B0",
-    surface: "#1A1B20",
-    onSurface: "#BFC6DC",
-    surfaceVariant: "#292929",
-    onSurfaceVariant: "#8A8C95",
+    outline: "#8B919D",
+    outlineVariant: "#414752",
 
-    /** 🔳 Contornos */
-    outline: "#292929",
-    outlineVariant: "#44474F",
+    inverseSurface: "#E0E2EA",
+    inverseOnSurface: "#2D3037",
+    inversePrimary: "#005FAF",
 
-    /** ♻️ Inversos */
-    inverseSurface: "#E0E0E0",
-    inverseOnSurface: "#121212",
-    inversePrimary: "#1A2B4A",
-
-    /** 🕶️ Sombra e overlay */
     shadow: "#000000",
-    scrim: "rgba(0, 0, 0, 0.5)",
-    backdrop: "rgba(0, 0, 0, 0.8)",
+    scrim: "#000000",
+    backdrop: "rgba(0, 0, 0, 0.3)",
 
-    /** 🚫 Estado desabilitado */
-    surfaceDisabled: "rgba(191, 198, 220, 0.12)",
-    onSurfaceDisabled: "rgba(191, 198, 220, 0.38)",
+    surfaceDisabled: "rgba(224, 226, 234, 0.12)",
+    onSurfaceDisabled: "rgba(224, 226, 234, 0.38)",
 
-    /** 🪟 Elevações */
     elevation: {
       level0: "transparent",
-      level1: "#1A1B20",
-      level2: "#202228",
-      level3: "#24262E",
-      level4: "#292B32",
-      level5: "#2F313A",
+      level1: "#181C21",
+      level2: "#1D2026",
+      level3: "#272A30",
+      level4: "#2D3037",
+      level5: "#32353B",
     },
   },
   fonts: {
     ...MD3DarkTheme.fonts,
     displayLarge: {
-      fontFamily: "Roboto-Bold",
+      fontFamily: "Inter-Bold",
       fontSize: 34,
       fontWeight: "700",
       lineHeight: 44,
       letterSpacing: 0.25,
     },
     displayMedium: {
-      fontFamily: "Roboto-Medium",
+      fontFamily: "Inter-Medium",
       fontSize: 28,
       fontWeight: "500",
       lineHeight: 36,
       letterSpacing: 0.15,
     },
     displaySmall: {
-      fontFamily: "Roboto-Regular",
+      fontFamily: "Inter-Regular",
       fontSize: 24,
       fontWeight: "400",
       lineHeight: 32,
       letterSpacing: 0.1,
     },
     bodyLarge: {
-      fontFamily: "Roboto-Regular",
+      fontFamily: "Inter-Regular",
       fontSize: 18,
       fontWeight: "400",
       lineHeight: 28,
       letterSpacing: 0.5,
     },
     bodyMedium: {
-      fontFamily: "Roboto-Regular",
+      fontFamily: "Inter-Regular",
       fontSize: 16,
       fontWeight: "400",
       lineHeight: 24,
       letterSpacing: 0.4,
     },
     labelLarge: {
-      fontFamily: "Roboto-Medium",
+      fontFamily: "Inter-Medium",
       fontSize: 16,
       fontWeight: "500",
       lineHeight: 24,

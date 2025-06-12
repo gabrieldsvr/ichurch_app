@@ -129,9 +129,6 @@ export default function MinistryDetailsScreen() {
           <Text>📍 Visibilidade: {visibilityMeta.label}</Text>
           <Text>🔧 Plugins: {ministry.plugins?.join(", ") || "Nenhum"}</Text>
           <Text>👥 Total de membros: {members.length}</Text>
-          <Text>
-            📆 Última atividade: {ministry.lastActivity || "Sem atividades"}
-          </Text>
         </Card.Content>
       </Card>
 

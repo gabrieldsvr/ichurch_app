@@ -6,26 +6,19 @@ import {
   RefreshControl,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-import { useTheme } from "react-native-paper";
+import { useTheme, TextInput } from "react-native-paper";
 import { router, useFocusEffect } from "expo-router";
-import { getUsers } from "@/src/api/peopleService"; // importe sua função real
+import { getUsers } from "@/src/api/peopleService";
 import { useTranslation } from "@/src/hook/useTranslation";
 import { ButtonFloatAdd } from "@/src/component/ButtonFloatAdd";
 import { useAuth } from "@/src/contexts/AuthProvider";
-
-interface Person {
-  id: string;
-  name: string;
-  description: string;
-  avatar: string;
-}
+import { PeopleDTO } from "@/src/dto/PeopleDTO";
 
 interface PeopleCardProps {
-  person: Person;
+  person: PeopleDTO;
   onPress: () => void;
 }
 
@@ -39,15 +32,26 @@ export function PersonCard({ person, onPress }: PeopleCardProps) {
       activeOpacity={0.8}
     >
       <View style={[styles.iconContainer]}>
-        <Image source={{ uri: person.avatar }} style={styles.avatar} />
+        <Image source={{ uri: person.photo as any }} style={styles.avatar} />
       </View>
       <View style={styles.infoContainer}>
-        <Text
-          style={[styles.title, { color: theme.colors.onSurface }]}
-          numberOfLines={1}
-        >
-          {person.name}
-        </Text>
+        <View style={styles.infoContainer}>
+          <Text
+            style={[styles.title, { color: theme.colors.onSurface }]}
+            numberOfLines={1}
+          >
+            {person.name}
+          </Text>
+          <Text
+            style={[
+              styles.description,
+              { color: theme.colors.onSurfaceVariant },
+            ]}
+            numberOfLines={1}
+          >
+            {person.email}
+          </Text>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -61,7 +65,7 @@ export default function PeopleListScreen() {
   const [filterActive, setFilterActive] = useState<"filter">("filter");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [peopleData, setPeopleData] = useState<Person[]>([]);
+  const [peopleData, setPeopleData] = useState<PeopleDTO[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
   // Busca dados sempre que a tela ganha foco
@@ -69,11 +73,9 @@ export default function PeopleListScreen() {
     try {
       const response = await getUsers("?status=active");
 
-      const people: Person[] = response.data.map((user: any) => ({
-        id: user.id,
-        name: user.name,
-        description: user.ministryName ?? "No ministry", // ajuste conforme API
-        avatar: user?.photo
+      const people: PeopleDTO[] = response.data.map((user: any) => ({
+        ...user,
+        photo: user?.photo
           ? `https://ichurch-storage.s3.us-east-1.amazonaws.com/${user?.photo}`
           : "https://randomuser.me/api/portraits/lego/1.jpg",
       }));
@@ -93,11 +95,13 @@ export default function PeopleListScreen() {
   );
 
   // Filtro simples local
-  const filteredPeople = peopleData.filter(
-    (p) =>
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.description.toLowerCase().includes(search.toLowerCase()),
-  );
+  const filteredPeople = peopleData.filter((p) => {
+    const searchText = search.toLowerCase();
+    return (
+      p.name.toLowerCase().includes(searchText) ||
+      (p.email && p.email.toLowerCase().includes(searchText))
+    );
+  });
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -112,14 +116,17 @@ export default function PeopleListScreen() {
         placeholder={t("search")}
         value={search}
         onChangeText={setSearch}
-        style={[
-          styles.searchInput,
-          {
-            borderColor: theme.colors.outline,
-            color: theme.colors.onBackground,
+        left={<TextInput.Icon icon="magnify" />}
+        style={styles.searchInput}
+        theme={{
+          colors: {
+            primary: theme.colors.primary,
+            background: theme.colors.surface,
+            text: theme.colors.onSurface,
+            placeholder: theme.colors.outline,
+            outline: theme.colors.outline,
           },
-        ]}
-        placeholderTextColor={theme.colors.outline}
+        }}
         autoCorrect={false}
         autoCapitalize="none"
       />
@@ -151,7 +158,6 @@ export default function PeopleListScreen() {
           )}
         />
       )}
-
       {auth.user?.isMaster ? (
         <ButtonFloatAdd
           pressAction={() => {
@@ -174,11 +180,6 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     marginTop: 12,
-    height: 44,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    fontSize: 16,
   },
   avatar: {
     width: 48,
@@ -189,12 +190,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     borderRadius: 12,
     padding: 16,
-    marginBottom: 12,
-    elevation: 3,
+    marginBottom: 16,
+    elevation: 4,
     shadowColor: "#000",
-    shadowOpacity: 0.1,
     shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
   },
   iconContainer: {
     width: 48,
@@ -209,7 +208,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   title: {
-    fontWeight: "700",
+    fontWeight: "500",
+    textTransform: "capitalize",
     fontSize: 16,
+  },
+  description: {
+    fontSize: 14,
+    marginTop: 2,
   },
 });
