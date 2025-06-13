@@ -1,15 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Alert, Image, ScrollView, StyleSheet, View } from "react-native";
-import {
-  Avatar,
-  Button,
-  FAB,
-  Text,
-  Modal,
-  TextInput,
-  useTheme,
-  Surface,
-} from "react-native-paper";
+import { Avatar, FAB, Text, useTheme } from "react-native-paper";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { deleteUser, getUserById } from "@/src/api/peopleService";
 import { useTranslation } from "@/src/hook/useTranslation";
@@ -18,25 +9,8 @@ import { useAuth } from "@/src/contexts/AuthProvider";
 import api from "@/src/api/api";
 import { logToDiscord } from "@/src/api/logService";
 import { ModalCreateUserLogin } from "@/src/component/modal/ModalCreateUserLogin";
-
-interface Ministry {
-  id: string;
-  name: string;
-  color: string;
-  icon?: string;
-}
-
-interface UserDetail {
-  id: string;
-  userId?: string;
-  name: string;
-  photo?: string;
-  phone?: string;
-  email?: string;
-  type: string;
-  address?: string;
-  ministries?: Ministry[];
-}
+import { PeopleDTO } from "@/src/dto/PeopleDTO";
+import { getPersonTypeLabel } from "@/src/constants/personTypeMeta";
 
 export default function UserDetailsScreen() {
   const theme = useTheme();
@@ -47,11 +21,10 @@ export default function UserDetailsScreen() {
   const { showMessage } = useSnackbar();
 
   const [fabOpen, setFabOpen] = useState(false);
-  const [userDetail, setUserDetail] = useState<UserDetail | null>(null);
+  const [userDetail, setUserDetail] = useState<PeopleDTO | null>(null);
   const [loading, setLoading] = useState(true);
 
   const [email, setEmail] = useState("");
-  const [success, setSuccess] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
@@ -67,8 +40,11 @@ export default function UserDetailsScreen() {
     try {
       setLoading(true);
       const response = await getUserById(id as string);
-      setUserDetail(response.data);
+      console.log("User details fetched:", response);
+
+      setUserDetail(response);
     } catch (error) {
+      console.log("Error fetching user details:", error);
       Alert.alert(t("error"), t("error_loading_user"));
     } finally {
       setLoading(false);
@@ -90,7 +66,6 @@ export default function UserDetailsScreen() {
       showMessage(t("user_create_success"));
       setModalVisible(false);
       setEmail("");
-      setSuccess(true);
       await fetchUser();
     } catch (error: any) {
       console.error("Erro ao criar conta:", error);
@@ -130,11 +105,17 @@ export default function UserDetailsScreen() {
             <Avatar.Icon
               size={100}
               icon="account"
-              style={styles.avatarCentered}
+              color={theme.colors.onPrimaryContainer}
+              style={[
+                styles.avatarCentered,
+                { backgroundColor: theme.colors.primaryContainer },
+              ]}
             />
           )}
           <Text style={styles.nameCentered}>{userDetail.name}</Text>
-          <Text style={styles.roleNote}>{userDetail.type}</Text>
+          <Text style={styles.roleNote}>
+            {getPersonTypeLabel(userDetail.type)}
+          </Text>
         </View>
 
         <View style={styles.infoCard}>
@@ -204,6 +185,7 @@ export default function UserDetailsScreen() {
                         await deleteUser(userDetail.id);
                         router.replace("/people");
                       } catch (err) {
+                        console.log(err);
                         Alert.alert(t("error"), t("error_deleting_user"));
                       }
                     },

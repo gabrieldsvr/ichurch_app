@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
   StyleSheet,
@@ -21,7 +21,7 @@ import * as yup from "yup";
 import { AvatarWithCamera } from "@/src/component/AvatarWithCamera";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { router, useLocalSearchParams } from "expo-router";
-import { createUser } from "@/src/api/peopleService";
+import { createUser, getUserById, updateUser } from "@/src/api/peopleService";
 
 const schema = yup.object().shape({
   name: yup.string().required("Nome é obrigatório"),
@@ -51,11 +51,11 @@ export default function RegisterMemberScreen() {
   const [isLoading, setIsLoading] = useState(false);
 
   const { id } = useLocalSearchParams();
-
   const {
     control,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
@@ -114,7 +114,7 @@ export default function RegisterMemberScreen() {
         if (value) formData.append(key, value);
       });
 
-      if (imageUri) {
+      if (imageUri && !imageUri.startsWith("http")) {
         formData.append("photo", {
           uri: imageUri,
           type: "image/jpeg",
@@ -123,10 +123,8 @@ export default function RegisterMemberScreen() {
       }
 
       if (id) {
-        console.log("Updating user with ID:", id, "and data:", formData);
-        // await updateUser(id, formData);
+        await updateUser(id as string, formData);
       } else {
-        console.log("Creating new user with data:", formData);
         await createUser(formData);
       }
 
@@ -137,6 +135,38 @@ export default function RegisterMemberScreen() {
       setIsLoading(false);
     }
   }
+
+  useEffect(() => {
+    if (!id) return;
+
+    (async () => {
+      try {
+        const user = await getUserById(id as string);
+        console.log(user);
+        reset({
+          name: user.name ?? "",
+          email: user.email ?? "",
+          phone: user.phone ?? "",
+          address: user.address ?? "",
+        });
+        setType(user.type || "member");
+        if (user.birthDate) {
+          const [year, month, day] = user.birthDate
+            .toString()
+            .split("-")
+            .map(Number);
+          setBirthDate(new Date(year, month - 1, day, 12));
+        }
+
+        if (user.photo)
+          setImageUri(
+            `https://ichurch-storage.s3.us-east-1.amazonaws.com/${user.photo}`,
+          );
+      } catch (error) {
+        console.error("Erro ao carregar dados do usuário:", error);
+      }
+    })();
+  }, [id]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>

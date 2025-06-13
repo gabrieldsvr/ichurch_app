@@ -1,3 +1,5 @@
+import { MinistryDTO } from "@/src/dto/MinistryDTO";
+
 export interface PeopleDTO {
   id: string;
   companyId: string;
@@ -5,6 +7,7 @@ export interface PeopleDTO {
   name: string;
   phone?: string | null;
   email?: string | null;
+  address?: string | null;
   birthDate?: Date | null; // Date em ISO string (ex: "2025-06-05")
   type: "visitor" | "regular_attendee" | "member";
   joinedAt?: string | null;
@@ -14,4 +17,6 @@ export interface PeopleDTO {
   role?: "LEADER" | "AUX" | "MEMBER";
   createdAt: string;
   updatedAt: string;
+
+  ministries?: MinistryDTO[];
 }

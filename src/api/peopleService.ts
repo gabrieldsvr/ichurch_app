@@ -1,4 +1,5 @@
 import api from "@/src/api/api";
+import { PeopleDTO } from "@/src/dto/PeopleDTO";
 
 export const createUser = async (userData: FormData) => {
   try {
@@ -35,9 +36,10 @@ export const getUsers = async (statusParam: string = "") => {
 };
 
 // Buscar usuário por ID
-export const getUserById = async (id: string) => {
+export const getUserById = async (id: string): Promise<PeopleDTO> => {
   try {
-    return await api.get(`/community/people/${id}`); // ou response.data se preferir só os dados
+    const response = await api.get(`/community/people/${id}`);
+    return response.data as PeopleDTO;
   } catch (error) {
     console.error(`Erro ao buscar usuário ID ${id}:`, error);
     throw error;
@@ -47,8 +49,7 @@ export const getUserById = async (id: string) => {
 // Deletar usuário por ID (exclusão lógica ou física, depende da API)
 export const deleteUser = async (id: string) => {
   try {
-    const response = await api.delete(`/community/people/${id}`);
-    return response;
+    return await api.delete(`/community/people/${id}`);
   } catch (error) {
     console.error(`Erro ao deletar usuário ID ${id}:`, error);
     throw error;

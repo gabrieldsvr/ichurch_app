@@ -2,11 +2,8 @@ import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
-  Image,
   RefreshControl,
   StyleSheet,
-  Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { FAB, TextInput, useTheme } from "react-native-paper";
@@ -15,53 +12,13 @@ import { getUsers } from "@/src/api/peopleService";
 import { useTranslation } from "@/src/hook/useTranslation";
 import { useAuth } from "@/src/contexts/AuthProvider";
 import { PeopleDTO } from "@/src/dto/PeopleDTO";
-
-interface PeopleCardProps {
-  person: PeopleDTO;
-  onPress: () => void;
-}
-
-export function PersonCard({ person, onPress }: PeopleCardProps) {
-  const theme = useTheme();
-
-  return (
-    <TouchableOpacity
-      style={[styles.card, { backgroundColor: theme.colors.surface }]}
-      onPress={onPress}
-      activeOpacity={0.8}
-    >
-      <View style={[styles.iconContainer]}>
-        <Image source={{ uri: person.photo as any }} style={styles.avatar} />
-      </View>
-      <View style={styles.infoContainer}>
-        <View style={styles.infoContainer}>
-          <Text
-            style={[styles.title, { color: theme.colors.onSurface }]}
-            numberOfLines={1}
-          >
-            {person.name}
-          </Text>
-          <Text
-            style={[
-              styles.description,
-              { color: theme.colors.onSurfaceVariant },
-            ]}
-            numberOfLines={1}
-          >
-            {person.email}
-          </Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-}
+import { PersonCard } from "@/src/component/PersonCard";
 
 export default function PeopleListScreen() {
   const theme = useTheme();
   const { t } = useTranslation();
   const auth = useAuth();
 
-  const [filterActive, setFilterActive] = useState<"filter">("filter");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [peopleData, setPeopleData] = useState<PeopleDTO[]>([]);
@@ -76,7 +33,7 @@ export default function PeopleListScreen() {
         ...user,
         photo: user?.photo
           ? `https://ichurch-storage.s3.us-east-1.amazonaws.com/${user?.photo}`
-          : "https://randomuser.me/api/portraits/lego/1.jpg",
+          : null,
       }));
       setPeopleData(people);
     } catch (error) {
@@ -117,6 +74,7 @@ export default function PeopleListScreen() {
         onChangeText={setSearch}
         left={<TextInput.Icon icon="magnify" />}
         style={styles.searchInput}
+        mode="outlined"
         theme={{
           colors: {
             primary: theme.colors.primary,
