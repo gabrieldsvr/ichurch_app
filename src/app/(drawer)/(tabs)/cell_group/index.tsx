@@ -42,30 +42,42 @@ export default function CellGroupListScreen() {
     }, [ministryId]),
   );
 
-  const renderItem = ({ item }: { item: CellGroupDTO }) => (
-    <List.Item
-      title={item.name}
-      description={`${item.totalMembers || 0} membro(s)`}
-      left={() => <Avatar.Icon icon="account-group" size={40} />}
-      right={() => (
-        <IconButton
-          icon="chevron-right"
-          onPress={() =>
-            router.push({
-              pathname: "/cell_group/cell-group-detail",
-              params: { cellGroupId: item.id },
-            })
-          }
-        />
-      )}
-      onPress={() =>
-        router.push({
-          pathname: "/cell_group/cell-group-detail",
-          params: { cellGroupId: item.id },
-        })
-      }
-    />
-  );
+  const renderItem = ({ item }: { item: CellGroupDTO }) => {
+    const iconName = item?.config?.icon || "account-group";
+    const iconColor = item?.config?.color || "#509BF8";
+
+    return (
+      <List.Item
+        title={item.name}
+        description={`${item.totalMembers || 0} membro(s)`}
+        left={() => (
+          <Avatar.Icon
+            icon={iconName}
+            size={40}
+            style={{ backgroundColor: `${iconColor}22` }} // cor com opacidade
+            color={iconColor}
+          />
+        )}
+        right={() => (
+          <IconButton
+            icon="chevron-right"
+            onPress={() =>
+              router.push({
+                pathname: "/cell_group/cell-group-detail",
+                params: { cellGroupId: item.id },
+              })
+            }
+          />
+        )}
+        onPress={() =>
+          router.push({
+            pathname: "/cell_group/cell-group-detail",
+            params: { cellGroupId: item.id },
+          })
+        }
+      />
+    );
+  };
 
   return (
     <View

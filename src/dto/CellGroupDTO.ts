@@ -7,7 +7,11 @@ export interface CellGroupDTO {
   status: "ativo" | "inativo";
   createdAt: string;
   updatedAt: string;
-
+  config?: {
+    icon: string;
+    color: string;
+  };
+  totalMembers?: number;
   members?: {
     id: string;
     name: string;

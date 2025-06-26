@@ -28,6 +28,7 @@ import {
 } from "@/src/api/cellGroupService";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { IconPicker } from "@/src/component/IconPicker";
 
 export default function UpsertCellGroupScreen() {
   const theme = useTheme();
@@ -41,6 +42,9 @@ export default function UpsertCellGroupScreen() {
   const [description, setDescription] = useState("");
   const [availableLeaders, setAvailableLeaders] = useState<PeopleDTO[]>([]);
   const [availableMembers, setAvailableMembers] = useState<PeopleDTO[]>([]);
+  const [icon, setIcon] = useState("account-group");
+  const [iconColor, setIconColor] = useState("#509BF8");
+
   const [selectedLeaders, setSelectedLeaders] = useState<PeopleDTO[]>([]);
   const [selectedMembers, setSelectedMembers] = useState<PeopleDTO[]>([]);
   const [showLeadersModal, setShowLeadersModal] = useState(false);
@@ -84,12 +88,17 @@ export default function UpsertCellGroupScreen() {
     const loadCellData = async () => {
       try {
         const data = await getCellGroupDetail(cellGroupId!);
+        console.log(data);
         setName(data.name);
         setDescription(data.description || "");
         setSelectedLeaders(
           data.members.filter((m) => m.role === "LEADER" || m.role === "AUX"),
         );
         setSelectedMembers(data.members.filter((m) => m.role === "MEMBER"));
+        if (data.config) {
+          setIcon(data.config.icon || "account-group");
+          setIconColor(data.config.color || "#509BF8");
+        }
       } catch (err) {
         Alert.alert("Erro", "Erro ao carregar dados da célula");
       }
@@ -162,6 +171,10 @@ export default function UpsertCellGroupScreen() {
       name,
       description,
       members: allMembers,
+      config: {
+        icon,
+        color: iconColor,
+      },
     };
 
     try {
@@ -181,6 +194,12 @@ export default function UpsertCellGroupScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <ScrollView contentContainerStyle={styles.container}>
+        <IconPicker
+          icon={icon}
+          setIcon={setIcon}
+          iconColor={iconColor}
+          setIconColor={setIconColor}
+        />
         <TextInput
           label="Nome"
           value={name}
