@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -101,9 +101,9 @@ export default function LoginScreen() {
     }
   };
 
-  useEffect(() => {
-    onSubmit();
-  }, []);
+  // useEffect(() => {
+  //   onSubmit();
+  // }, []);
 
   return (
     <KeyboardAvoidingView
