@@ -54,12 +54,12 @@ export default function LoginScreen() {
   const onSubmit = async (data: LoginForm) => {
     try {
       setLoading(true);
-      // const response = await api.post("/sca/auth/login", data);
+      const response = await api.post("/sca/auth/login", data);
 
-      const response = await api.post("/sca/auth/login", {
-        email: "ichurch@gmail.com",
-        password: "12345678",
-      });
+      // const response = await api.post("/sca/auth/login", {
+      //   email: "ichurch@gmail.com",
+      //   password: "12345678",
+      // });
       // const response = await api.post("/sca/auth/login", {
       //   email: "lideranca@pibfloripa.com.br",
       //   password: "adm123",
