@@ -31,23 +31,18 @@ export function PersonCard({ person, onPress }: PeopleCardProps) {
         )}
       </View>
       <View style={styles.infoContainer}>
-        <View style={styles.infoContainer}>
-          <Text
-            style={[styles.title, { color: theme.colors.onSurface }]}
-            numberOfLines={1}
-          >
-            {person.name}
-          </Text>
-          <Text
-            style={[
-              styles.description,
-              { color: theme.colors.onSurfaceVariant },
-            ]}
-            numberOfLines={1}
-          >
-            {getPersonTypeLabel(person.type)}
-          </Text>
-        </View>
+        <Text
+          style={[styles.title, { color: theme.colors.onSurface }]}
+          numberOfLines={1}
+        >
+          {person.name}
+        </Text>
+        <Text
+          style={[styles.description, { color: theme.colors.onSurfaceVariant }]}
+          numberOfLines={1}
+        >
+          {getPersonTypeLabel(person.type)}
+        </Text>
       </View>
     </TouchableOpacity>
   );

@@ -16,6 +16,7 @@ export interface MinistryDTO {
     | MinistryType.CANTINA;
   visibility: MinistryVisibility;
   status: Status;
+  code?: string;
 
   members?: PeopleDTO[];
   membersCount?: number; // campos agregados opcionais

@@ -1,5 +1,6 @@
 import api from "@/src/api/api";
 import { MinistryDTO } from "@/src/dto/MinistryDTO";
+import { PeopleDTO } from "@/src/dto/PeopleDTO";
 
 export const createMinistry = async (ministryData: MinistryDTO) => {
   try {
@@ -75,3 +76,54 @@ export async function getMinistryMembers(ministryId: string) {
 export const getCellGroupsByMinistry = async (ministryId: string) => {
   return api.get(`/ministry/ministries/${ministryId}/cell_groups`);
 };
+
+export async function getAvailablePeopleToAdd(
+  ministryId: string,
+): Promise<PeopleDTO[]> {
+  const { data } = await api.get(
+    `/ministry/ministries/${ministryId}/available-people`,
+  );
+  return data as PeopleDTO[];
+}
+
+export async function addMinistryMembersBulk(
+  ministryId: string,
+  members: { id: string; role: string }[],
+) {
+  console.log(ministryId);
+  console.log(members);
+  return api.post("/ministry/members/bulk", {
+    ministry_id: ministryId,
+    members: members.map((m) => ({
+      person_id: m.id,
+      role: m.role,
+    })),
+  });
+}
+
+/**
+ * Atualiza o papel de um membro em um ministério com base no person_id e ministry_id.
+ *
+ * @param ministryId - ID do ministério
+ * @param userId - ID da pessoa (person_id)
+ * @param role - Novo papel: 'LEADER', 'AUX', ou 'MEMBER'
+ */
+export async function updateMemberRole(
+  ministryId: string,
+  userId: string,
+  role: "LEADER" | "AUX" | "MEMBER",
+): Promise<void> {
+  console.log(
+    `Atualizando papel do usuário ${userId} no ministério ${ministryId} para ${role}`,
+  );
+
+  await api.patch(`/ministry/members`, {
+    ministry_id: ministryId,
+    person_id: userId,
+    role,
+  });
+}
+
+export async function removeMember(memberId: string): Promise<void> {
+  await api.delete(`/ministry/members/${memberId}`);
+}

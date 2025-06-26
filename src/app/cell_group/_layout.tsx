@@ -16,7 +16,7 @@ export default function CellGroupLayout() {
           headerShadowVisible: false,
         }}
       >
-        <Stack.Screen name="upsert" options={{ title: "" }} />
+        <Stack.Screen name="upsert" options={{ title: "Criar nova célula" }} />
         <Stack.Screen
           name="cell-group-detail"
           options={{ title: "Detalhe de célula" }}

@@ -1,11 +1,18 @@
 import React, { useCallback, useState } from "react";
 import { Alert, FlatList, StyleSheet, View } from "react-native";
-import { Avatar, IconButton, List, Text, useTheme } from "react-native-paper";
+import {
+  ActivityIndicator,
+  Avatar,
+  FAB,
+  IconButton,
+  List,
+  Text,
+  useTheme,
+} from "react-native-paper";
 import { useFocusEffect, useRouter } from "expo-router";
 import { getCellGroupsByMinistry } from "@/src/api/ministryService";
 import { CellGroupDTO } from "@/src/dto/CellGroupDTO";
 import { useMinistry } from "@/src/contexts/MinistryProvider";
-import { ButtonFloatAdd } from "@/src/component/ButtonFloatAdd";
 
 export default function CellGroupListScreen() {
   const theme = useTheme();
@@ -38,19 +45,8 @@ export default function CellGroupListScreen() {
   const renderItem = ({ item }: { item: CellGroupDTO }) => (
     <List.Item
       title={item.name}
-      description={`Líder: ${item.leader?.name || "Desconhecido"} • ${item.totalMembers || 0} membro(s)`}
-      left={() =>
-        item.leader?.photo ? (
-          <Avatar.Image
-            size={40}
-            source={{
-              uri: `https://ichurch-storage.s3.us-east-1.amazonaws.com/${item.leader.photo}`,
-            }}
-          />
-        ) : (
-          <Avatar.Icon icon="account-group" size={40} />
-        )
-      }
+      description={`${item.totalMembers || 0} membro(s)`}
+      left={() => <Avatar.Icon icon="account-group" size={40} />}
       right={() => (
         <IconButton
           icon="chevron-right"
@@ -76,7 +72,12 @@ export default function CellGroupListScreen() {
       style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
       {loading ? (
-        <Text>Carregando...</Text>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator animating size="large" />
+          <Text variant="bodyMedium" style={{ marginTop: 12 }}>
+            Carregando células...
+          </Text>
+        </View>
       ) : (
         <FlatList
           data={cells}
@@ -85,8 +86,20 @@ export default function CellGroupListScreen() {
           contentContainerStyle={{ paddingBottom: 100 }}
         />
       )}
-
-      <ButtonFloatAdd pressAction={() => router.push("/cell_group/upsert")} />
+      <FAB
+        icon="plus"
+        style={{
+          position: "absolute",
+          right: 16,
+          bottom: 16,
+          backgroundColor: theme.colors.primary,
+        }}
+        color={theme.colors.onPrimary}
+        onPress={() => {
+          router.push("/cell_group/upsert");
+        }}
+        accessibilityLabel="Adicionar nova célula"
+      />
     </View>
   );
 }
@@ -98,5 +111,10 @@ const styles = StyleSheet.create({
   },
   title: {
     marginBottom: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

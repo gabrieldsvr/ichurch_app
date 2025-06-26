@@ -41,6 +41,13 @@ function MinistryLayoutContent() {
           headerShown: true,
         }}
       />
+      <Stack.Screen
+        name="members"
+        options={{
+          title: "Editar membros",
+          headerShown: true,
+        }}
+      />
       {/* Se usar a rota dinâmica [id], defina se precisa de header */}
       <Stack.Screen name="[id]" options={{ headerShown: false }} />
     </Stack>

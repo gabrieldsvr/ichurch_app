@@ -5,18 +5,22 @@ export const VisibilityMetadata: Record<
   { label: string; color: string; icon: string }
 > = {
   [MinistryVisibility.PUBLIC]: {
-    label: "public",
+    label: "Público",
     color: "#4caf50",
     icon: "earth",
   },
   [MinistryVisibility.SECRET]: {
-    label: "secrect",
+    label: "Secreto",
     color: "#ff9800",
     icon: "lock",
   },
   [MinistryVisibility.PRIVATE]: {
-    label: "private",
+    label: "Privado",
     color: "#f44336",
     icon: "account-lock",
   },
 };
+
+export function getVisibilityLabel(visibility: MinistryVisibility): string {
+  return VisibilityMetadata[visibility]?.label ?? visibility;
+}

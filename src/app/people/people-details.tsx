@@ -92,6 +92,7 @@ export default function UserDetailsScreen() {
     <>
       <ScrollView
         style={[styles.container, { backgroundColor: theme.colors.background }]}
+        showsVerticalScrollIndicator={false}
       >
         <View style={styles.profileHeader}>
           {userDetail.photo ? (
@@ -133,14 +134,13 @@ export default function UserDetailsScreen() {
             <Text>{userDetail.address || t("no_data")}</Text>
           </View>
         </View>
-
         <View style={styles.infoCard}>
           <Text style={styles.sectionLabel}>{t("ministries")}</Text>
           {userDetail.ministries && userDetail.ministries.length > 0 ? (
             userDetail.ministries.map((ministry) => (
               <View key={ministry.id} style={styles.ministryRow}>
                 <Text>{ministry.name}</Text>
-                <Text style={styles.ministryRole}>Member</Text>
+                <Text style={styles.ministryRole}>teste</Text>
               </View>
             ))
           ) : (
@@ -223,7 +223,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 20,
   },
   loadingContainer: {
     flex: 1,

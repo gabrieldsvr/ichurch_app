@@ -18,7 +18,6 @@ import { MinistryMetadata } from "@/src/constants/ministryMetadata";
 import { VisibilityMetadata } from "@/src/constants/VisibilityMetadata";
 import { MinistryVisibility } from "@/src/types/MinistryVisibility";
 import { PeopleDTO } from "@/src/dto/PeopleDTO";
-import { ModalAddRemoveMembers } from "@/src/component/modal/ModalAddRemoveMembers";
 import { router } from "expo-router";
 
 export default function MinistryDetailsScreen() {
@@ -180,18 +179,6 @@ export default function MinistryDetailsScreen() {
       >
         Gerenciar ministério
       </Button>
-
-      {/* Modal */}
-      <ModalAddRemoveMembers
-        visible={showModal}
-        onClose={() => setShowModal(false)}
-        selected={selected}
-        onToggle={handleToggle}
-        onSave={handleSaveModal}
-        search={search}
-        setSearch={setSearch}
-        title="Membros do ministério"
-      />
     </ScrollView>
   );
 }

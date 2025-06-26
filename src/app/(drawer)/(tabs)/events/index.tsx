@@ -12,14 +12,13 @@ import {
   View,
 } from "react-native";
 import PagerView from "react-native-pager-view";
-import { useTheme } from "react-native-paper";
+import { FAB, useTheme } from "react-native-paper";
 import { router } from "expo-router";
 import { groupBy } from "lodash";
 
 import { getEvents } from "@/src/api/eventService";
 import { useMinistry } from "@/src/contexts/MinistryProvider";
 import { EventCard } from "@/src/component/EventCard";
-import { ButtonFloatAdd } from "@/src/component/ButtonFloatAdd";
 import { EventDTO } from "@/src/dto/EventDTO";
 import { useTranslation } from "@/src/hook/useTranslation";
 import CalendarView from "@/src/component/CalendarView";
@@ -102,7 +101,7 @@ export default function EventsScreen() {
       .toUpperCase();
     const weekday = date.toLocaleString("pt-BR", { weekday: "long" });
 
-    return `${day} ${month} • ${
+    return `${day} ${month} - ${
       weekday.charAt(0).toUpperCase() + weekday.slice(1)
     }`;
   };
@@ -227,7 +226,20 @@ export default function EventsScreen() {
       </PagerView>
 
       {auth.user?.isMaster ? (
-        <ButtonFloatAdd pressAction={() => router.push("/events/upsert")} />
+        <FAB
+          icon="plus"
+          style={{
+            position: "absolute",
+            right: 16,
+            bottom: 16,
+            backgroundColor: theme.colors.primary,
+          }}
+          color={theme.colors.onPrimary}
+          onPress={() => {
+            router.push("/events/upsert");
+          }}
+          accessibilityLabel="Adicionar evento"
+        />
       ) : null}
     </SafeAreaView>
   );

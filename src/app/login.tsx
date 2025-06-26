@@ -61,7 +61,7 @@ export default function LoginScreen() {
         password: "12345678",
       });
       // const response = await api.post("/sca/auth/login", {
-      //   email: "gabriel@gmail.com",
+      //   email: "lideranca@pibfloripa.com.br",
       //   password: "adm123",
       // });
       const { token, user } = response.data;

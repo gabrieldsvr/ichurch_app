@@ -1,3 +1,4 @@
+// ...imports inalterados
 import React, { useEffect, useState } from "react";
 import {
   Alert,
@@ -11,6 +12,7 @@ import {
 import {
   Avatar,
   Button,
+  FAB,
   IconButton,
   Text,
   TextInput,
@@ -25,6 +27,7 @@ import {
   updateCellGroup,
 } from "@/src/api/cellGroupService";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function UpsertCellGroupScreen() {
   const theme = useTheme();
@@ -36,15 +39,14 @@ export default function UpsertCellGroupScreen() {
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-
   const [availableLeaders, setAvailableLeaders] = useState<PeopleDTO[]>([]);
   const [availableMembers, setAvailableMembers] = useState<PeopleDTO[]>([]);
-
   const [selectedLeaders, setSelectedLeaders] = useState<PeopleDTO[]>([]);
   const [selectedMembers, setSelectedMembers] = useState<PeopleDTO[]>([]);
-
   const [showLeadersModal, setShowLeadersModal] = useState(false);
   const [showMembersModal, setShowMembersModal] = useState(false);
+
+  const insets = useSafeAreaInsets();
 
   useFocusEffect(() => {
     const onBackPress = () => {
@@ -122,7 +124,12 @@ export default function UpsertCellGroupScreen() {
       >
         <View style={styles.personLeft}>
           {person.photo ? (
-            <Avatar.Image size={40} source={{ uri: person.photo }} />
+            <Avatar.Image
+              size={40}
+              source={{
+                uri: `https://ichurch-storage.s3.us-east-1.amazonaws.com/${person.photo}`,
+              }}
+            />
           ) : (
             <Avatar.Icon size={40} icon="account" />
           )}
@@ -172,52 +179,62 @@ export default function UpsertCellGroupScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text variant="titleLarge" style={styles.title}>
-        {isEditing ? "Editar Célula" : "Criar Nova Célula"}
-      </Text>
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <TextInput
+          label="Nome"
+          value={name}
+          onChangeText={setName}
+          mode="outlined"
+          style={styles.input}
+        />
 
-      <TextInput
-        label="Nome"
-        value={name}
-        onChangeText={setName}
-        mode="outlined"
-        style={styles.input}
+        <TextInput
+          label="Descrição"
+          value={description}
+          onChangeText={setDescription}
+          mode="outlined"
+          multiline
+          numberOfLines={4}
+          style={styles.input}
+        />
+
+        <Text variant="titleMedium" style={styles.sectionTitle}>
+          Liderança
+        </Text>
+        {selectedLeaders.map((p) =>
+          renderPersonItem(p, selectedLeaders, setSelectedLeaders),
+        )}
+        <Button mode="outlined" onPress={() => setShowLeadersModal(true)}>
+          Adicionar Líder
+        </Button>
+
+        <Text variant="titleMedium" style={styles.sectionTitle}>
+          Membros
+        </Text>
+        {selectedMembers.map((p) =>
+          renderPersonItem(p, selectedMembers, setSelectedMembers),
+        )}
+        <Button mode="outlined" onPress={() => setShowMembersModal(true)}>
+          Adicionar Membro
+        </Button>
+      </ScrollView>
+
+      <FAB
+        icon="check"
+        label="Salvar"
+        onPress={handleSave}
+        style={[
+          styles.fab,
+          {
+            right: 16,
+            bottom: insets.bottom + 16,
+            backgroundColor: theme.colors.primary,
+          },
+        ]}
+        color={theme.colors.onPrimary}
+        variant="primary"
       />
-
-      <TextInput
-        label="Descrição"
-        value={description}
-        onChangeText={setDescription}
-        mode="outlined"
-        multiline
-        numberOfLines={4}
-        style={styles.input}
-      />
-
-      <Text variant="titleMedium" style={styles.sectionTitle}>
-        Liderança
-      </Text>
-      {selectedLeaders.map((p) =>
-        renderPersonItem(p, selectedLeaders, setSelectedLeaders),
-      )}
-      <Button mode="outlined" onPress={() => setShowLeadersModal(true)}>
-        Adicionar Líder
-      </Button>
-
-      <Text variant="titleMedium" style={styles.sectionTitle}>
-        Membros
-      </Text>
-      {selectedMembers.map((p) =>
-        renderPersonItem(p, selectedMembers, setSelectedMembers),
-      )}
-      <Button mode="outlined" onPress={() => setShowMembersModal(true)}>
-        Adicionar Membro
-      </Button>
-
-      <Button mode="contained" onPress={handleSave} style={{ marginTop: 32 }}>
-        Salvar
-      </Button>
 
       <Modal visible={showLeadersModal} animationType="slide">
         <ScrollView style={styles.modal}>
@@ -234,7 +251,6 @@ export default function UpsertCellGroupScreen() {
           </Button>
         </ScrollView>
       </Modal>
-
       <Modal visible={showMembersModal} animationType="slide">
         <ScrollView style={styles.modal}>
           <Text style={styles.modalTitle}>Selecionar Membros</Text>
@@ -250,12 +266,12 @@ export default function UpsertCellGroupScreen() {
           </Button>
         </ScrollView>
       </Modal>
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16 },
+  container: { padding: 16, paddingBottom: 100 },
   title: { marginBottom: 16 },
   input: { marginBottom: 16 },
   sectionTitle: { marginTop: 24, marginBottom: 8 },
@@ -280,5 +296,12 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     marginBottom: 16,
+  },
+  fab: {
+    position: "absolute",
+    right: 16,
+    bottom: 20,
+    borderRadius: 28,
+    zIndex: 99,
   },
 });
