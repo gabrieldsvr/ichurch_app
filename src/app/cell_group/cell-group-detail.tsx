@@ -9,7 +9,7 @@ import {
   Text,
   useTheme,
 } from "react-native-paper";
-import { router, useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   deleteCellGroup,
   getCellGroupDetail,
@@ -17,7 +17,6 @@ import {
 import { CellGroupDTO } from "@/src/dto/CellGroupDTO";
 import { useMinistry } from "@/src/contexts/MinistryProvider";
 import { getUpcomingEventsByMinistryId } from "@/src/api/eventService";
-import { EventCard } from "@/src/component/EventCard";
 import { useAuth } from "@/src/contexts/AuthProvider";
 import { useTranslation } from "@/src/hook/useTranslation";
 import { CellGroupEventCard } from "@/src/component/CellGroupEventCard";
@@ -139,7 +138,6 @@ export default function CellGroupDetailScreen() {
     <View key={m.id} style={styles.memberRow}>
       {m.photo ? (
         <Avatar.Image
-          size={size}
           source={{
             uri: `https://ichurch-storage.s3.us-east-1.amazonaws.com/${m.photo}`,
           }}

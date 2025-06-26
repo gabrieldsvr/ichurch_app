@@ -66,6 +66,14 @@ function CustomDrawerContent(props: any) {
   const insets = useSafeAreaInsets();
   const auth = useAuth();
 
+  function getInitials(name?: string): string {
+    if (!name) return "?";
+    const names = name.split(" ");
+    const first = names[0]?.[0] || "";
+    const last = names.length > 1 ? names[names.length - 1][0] : "";
+    return (first + last).toUpperCase();
+  }
+
   return (
     <View style={{ flex: 1 }}>
       {/* 🔝 TOPO COM SAFEAREA */}
@@ -80,9 +88,10 @@ function CustomDrawerContent(props: any) {
           activeOpacity={0.8}
           onPress={() => props.navigation.navigate("profile")}
         >
-          <Avatar.Image
+          <Avatar.Text
             size={56}
-            source={{ uri: "https://i.pravatar.cc/150?u=user" }}
+            label={getInitials(auth.user?.name)}
+            style={{ backgroundColor: theme.colors.primary }}
           />
           <View style={styles.headerText}>
             <Text style={styles.userName}>{auth.user?.name}</Text>

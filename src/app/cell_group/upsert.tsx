@@ -1,8 +1,8 @@
-// ...imports inalterados
 import React, { useEffect, useState } from "react";
 import {
   Alert,
   BackHandler,
+  FlatList,
   Modal,
   Pressable,
   ScrollView,
@@ -256,34 +256,45 @@ export default function UpsertCellGroupScreen() {
       />
 
       <Modal visible={showLeadersModal} animationType="slide">
-        <ScrollView style={styles.modal}>
+        <View style={styles.modal}>
           <Text style={styles.modalTitle}>Selecionar Liderança</Text>
-          {availableLeaders.map((p) =>
-            renderPersonItem(p, selectedLeaders, setSelectedLeaders),
-          )}
-          <Button
-            mode="contained"
+          <FlatList
+            data={availableLeaders}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) =>
+              renderPersonItem(item, selectedLeaders, setSelectedLeaders)
+            }
+            contentContainerStyle={{ paddingBottom: 100 }}
+          />
+          <FAB
+            icon="check"
+            label="Confirmar"
             onPress={() => setShowLeadersModal(false)}
-            style={{ marginTop: 16 }}
-          >
-            Confirmar Liderança
-          </Button>
-        </ScrollView>
+            style={styles.fabModal}
+            color="white"
+          />
+        </View>
       </Modal>
+
       <Modal visible={showMembersModal} animationType="slide">
-        <ScrollView style={styles.modal}>
+        <View style={styles.modal}>
           <Text style={styles.modalTitle}>Selecionar Membros</Text>
-          {availableMembers.map((p) =>
-            renderPersonItem(p, selectedMembers, setSelectedMembers),
-          )}
-          <Button
-            mode="contained"
+          <FlatList
+            data={availableMembers}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) =>
+              renderPersonItem(item, selectedMembers, setSelectedMembers)
+            }
+            contentContainerStyle={{ paddingBottom: 100 }}
+          />
+          <FAB
+            icon="check"
+            label="Confirmar"
             onPress={() => setShowMembersModal(false)}
-            style={{ marginTop: 16 }}
-          >
-            Confirmar Membros
-          </Button>
-        </ScrollView>
+            style={styles.fabModal}
+            color="white"
+          />
+        </View>
       </Modal>
     </View>
   );
@@ -322,5 +333,13 @@ const styles = StyleSheet.create({
     bottom: 20,
     borderRadius: 28,
     zIndex: 99,
+  },
+  fabModal: {
+    position: "absolute",
+    bottom: 20,
+    right: 16,
+    backgroundColor: "#509BF8",
+    borderRadius: 28,
+    zIndex: 10,
   },
 });
