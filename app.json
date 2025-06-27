@@ -2,7 +2,7 @@
   "expo": {
     "name": "ichurch",
     "slug": "ichurch",
-    "version": "0.5.0",
+    "version": "0.6.0",
     "orientation": "portrait",
     "icon": "./src/assets/images/icon.png",
     "scheme": "myapp",
