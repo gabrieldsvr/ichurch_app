@@ -7,6 +7,7 @@ import {
   Card,
   Divider,
   Text,
+  TouchableRipple,
   useTheme,
 } from "react-native-paper";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -134,22 +135,36 @@ export default function CellGroupDetailScreen() {
   const leaders = (cellGroup.members ?? []).filter((m) => m.role === "LEADER");
   const members = (cellGroup.members ?? []).filter((m) => m.role !== "LEADER");
 
-  const renderMember = (m: MemberDTO, size = 40) => (
-    <View key={m.id} style={styles.memberRow}>
-      {m.photo ? (
-        <Avatar.Image
-          source={{
-            uri: `https://ichurch-storage.s3.us-east-1.amazonaws.com/${m.photo}`,
-          }}
-        />
-      ) : (
-        <Avatar.Icon icon="account" size={size} />
-      )}
-      <View style={styles.memberInfo}>
-        <Text>{m.name}</Text>
-        <Text style={styles.roleText}>{m.role}</Text>
+  const handlePress = (memberId: string) => {
+    router.push({
+      pathname: "/people/people-details",
+      params: { id: memberId },
+    });
+  };
+
+  const renderMember = (m: MemberDTO) => (
+    <TouchableRipple
+      key={m.id}
+      onPress={() => handlePress(m.id)}
+      rippleColor="rgba(0, 0, 0, .1)"
+      style={styles.memberRow}
+    >
+      <View key={m.id} style={styles.memberRow}>
+        {m.photo ? (
+          <Avatar.Image
+            source={{
+              uri: `https://ichurch-storage.s3.us-east-1.amazonaws.com/${m.photo}`,
+            }}
+          />
+        ) : (
+          <Avatar.Icon icon="account" />
+        )}
+        <View style={styles.memberInfo}>
+          <Text>{m.name}</Text>
+          <Text style={styles.roleText}>{m.role}</Text>
+        </View>
       </View>
-    </View>
+    </TouchableRipple>
   );
 
   return (
@@ -197,7 +212,7 @@ export default function CellGroupDetailScreen() {
         />
         <Card.Content>
           {leaders.length > 0 ? (
-            leaders.map((l) => renderMember(l, 48))
+            leaders.map((l) => renderMember(l))
           ) : (
             <Text>Nenhum líder definido.</Text>
           )}
@@ -282,6 +297,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 12,
+    overflow: "hidden",
   },
   memberInfo: {
     marginLeft: 12,

@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { PaperProvider, MD3Theme } from "react-native-paper";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { MD3Theme, PaperProvider } from "react-native-paper";
 import { useColorScheme } from "react-native";
 import { DarkTheme } from "@/src/theme/DarkTheme";
 import { LightTheme } from "@/src/theme/LightTheme";
@@ -24,7 +24,7 @@ export const useAppTheme = () => {
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemTheme = useColorScheme();
-  const [isDark, setIsDark] = useState(systemTheme === "dark");
+  const [isDark, setIsDark] = useState(systemTheme === "light");
 
   useEffect(() => {
     loadTheme(); // 🔥 Carrega o tema salvo ao iniciar o app
